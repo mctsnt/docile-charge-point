@@ -3,6 +3,7 @@ package test
 
 import java.io.File
 import java.net.URI
+import java.nio.charset.StandardCharsets
 
 import scala.tools.reflect.ToolBox
 import scala.util.{Failure, Success, Try}
@@ -163,34 +164,40 @@ object Runner {
     new Runner(files.map(loadFile(vfam, _)))
 
   private def loadFile(vfam: VersionFamily, f: String): TestCase[vfam.type] = {
-
     val file = new File(f)
     val testNameRegex = "(?:.*/)?([^/]+?)(?:\\.[^.]*)?$".r
     val testName = f match {
       case testNameRegex(n) => n
-      case _                => f
+      case _ => f
     }
+    val fileContents = scala.io.Source.fromFile(file).getLines.mkString("\n")
 
+    loadString(vfam, testName, fileContents)
+  }
+
+  def forBytes(vfam: VersionFamily, name:String, bytes:Array[Byte]): Runner[vfam.type] =
+    new Runner(Seq(loadString(vfam, name, new String(bytes, StandardCharsets.UTF_8))))
+
+
+  private def loadString(vfam: VersionFamily, name:String, txt: String): TestCase[vfam.type] = {
     import reflect.runtime.currentMirror
     val toolbox = currentMirror.mkToolBox()
 
     val appendix = ";\n  }\n}"
 
-    val fileContents = scala.io.Source.fromFile(file).getLines.mkString("\n")
-
-    logger.info(s"Parsing and compiling script '$f'")
+    logger.info(s"Parsing and compiling script '$name'")
 
     val preamble = preambleForVersionFamily(vfam)
 
-    val fileAst = toolbox.parse(preamble + fileContents + appendix)
+    val fileAst = toolbox.parse(preamble + txt + appendix)
 
-    logger.info(s"Parsed '$f'")
+    logger.info(s"Parsed '$name'")
 
     val compiledCode = toolbox.compile(fileAst)
 
-    logger.info(s"Compiled '$f'")
+    logger.info(s"Compiled '$name'")
 
-    TestCase(testName, () => compiledCode().asInstanceOf[OcppTest[vfam.type]])
+    TestCase(name, () => compiledCode().asInstanceOf[OcppTest[vfam.type]])
   }
 
   private def preambleForVersionFamily(vfam: VersionFamily): String = {
