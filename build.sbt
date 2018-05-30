@@ -26,7 +26,7 @@ lazy val lambda = (project in file("aws-lambda")).
     commonSettings,
     name := "lambda-docile-charge-point",
     retrieveManaged := true,
-    libraryDependencies ++= deps(scalaVersion.value),
+    libraryDependencies ++= deps(scalaVersion.value) ++ awsDeps,
     mainClass := Some("chargepoint.docile.Lambda"),
     assemblyJarName in assembly := "docile-lambda.jar"
   )
@@ -40,7 +40,6 @@ def deps(scalaVersion: String) = Seq(
   "com.thenewmotion.ocpp"       %% "ocpp-j-api"       % "9.1.0",
   "org.rogach"                  %% "scallop"          % "3.1.3",
   "org.scala-lang"               % "scala-compiler"   % scalaVersion,
-
   "com.typesafe.scala-logging"  %% "scala-logging"    % "3.9.0",
   "org.slf4j"                    % "slf4j-api"        % "1.7.25",
   "ch.qos.logback"               % "logback-classic"  % "1.2.3",
@@ -48,3 +47,9 @@ def deps(scalaVersion: String) = Seq(
   "org.specs2"                  %% "specs2-core"      % "4.3.4"    % "test"
 )
 
+lazy val awsDeps = Seq(
+  "com.amazonaws" % "aws-java-sdk-s3" % "1.11.337",
+  "com.amazonaws" % "aws-java-sdk-lambda" % "1.11.337",
+  "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
+  "com.amazonaws" % "aws-lambda-java-events" % "1.2.0"
+)
