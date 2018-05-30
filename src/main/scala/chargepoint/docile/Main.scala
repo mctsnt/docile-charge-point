@@ -181,7 +181,10 @@ object Main extends App with StrictLogging {
 
   Try(runner.run(runnerCfg)) match {
     case Success(testsPassed) =>
-      val succeeded = summarizeResults(testsPassed)
+      val succeeded = summarizeResults(testsPassed, {
+        case s: String => logger.info(s)
+        case x         => logger.info("%s".format(x))
+      })
       sys.exit(if (succeeded) 0 else 1)
     case Failure(e) =>
       System.err.println(s"Could not run tests: ${e.getMessage}")
@@ -189,7 +192,7 @@ object Main extends App with StrictLogging {
       sys.exit(2)
   }
 
-  def summarizeResults(testResults: Map[String, Seq[Map[String, TestResult]]]): Boolean = {
+  def summarizeResults(testResults: Map[String, Seq[Map[String, TestResult]]], report:Any => Unit): Boolean = {
 
     // we do result formatting differently depending on whether we're doing a
     // single run (one charge point, one pass through the test script), or if
@@ -202,13 +205,13 @@ object Main extends App with StrictLogging {
           .flatMap(_._2.headOption)
           .getOrElse(Map.empty[String, TestResult])
 
-      summarizeSingleRun(singleRunResult)
+      summarizeSingleRun(singleRunResult, report)
     } else {
-      summarizeComplexRun(testResults)
+      summarizeComplexRun(testResults, report)
     }
   }
 
-  private def summarizeSingleRun(testResults: Map[String, TestResult]): Boolean = {
+  private def summarizeSingleRun(testResults: Map[String, TestResult], report: Any => Unit): Boolean = {
     val outcomes = testResults map  { case (testName, outcome) =>
 
       val outcomeDescription = outcome match {
@@ -221,7 +224,7 @@ object Main extends App with StrictLogging {
           s"✅"
       }
 
-      println(s"$testName: $outcomeDescription")
+      report(s"$testName: $outcomeDescription")
 
       outcome
     }
@@ -229,7 +232,7 @@ object Main extends App with StrictLogging {
     outcomes.collect({ case TestFailed(_) => }).isEmpty
   }
 
-  private def summarizeComplexRun(testResults: Map[String, Seq[Map[String, TestResult]]]): Boolean = {
+  private def summarizeComplexRun(testResults: Map[String, Seq[Map[String, TestResult]]], report: Any => Unit): Boolean = {
     val countsPerChargePoint: Map[String, (Int, Int, Int)] = testResults.mapValues { runs =>
       runs.foldLeft((0, 0, 0)) { case (counts, results) =>
           val countsForRun = results.values.foldLeft((0,0,0)) {
@@ -243,7 +246,7 @@ object Main extends App with StrictLogging {
     }
 
     countsPerChargePoint foreach { case (chargePointId, counts) =>
-      logger.info(s"$chargePointId: ${counts._1} failed / ${counts._2} errors / ${counts._3} passed")
+      report(s"$chargePointId: ${counts._1} failed / ${counts._2} errors / ${counts._3} passed")
     }
 
     !countsPerChargePoint.values.exists(c => c._1 != 0 || c._2 != 0)
