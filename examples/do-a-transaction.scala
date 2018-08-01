@@ -10,7 +10,7 @@ if (auth.status == AuthorizationStatus.Accepted) {
   prompt("Press ENTER to stop charging")
 
   statusNotification(status = ChargePointStatus.Occupied(Some(OccupancyKind.Finishing)))
-  stopTransaction(transactionId = transId, idTag = Some(chargeTokenId))
+  stopTransaction(meterStop = 310, transactionId = transId, idTag = Some(chargeTokenId))
   statusNotification(status = ChargePointStatus.Available())
 
 } else {
