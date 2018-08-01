@@ -2,6 +2,8 @@
 
 A scriptable [OCPP](http://openchargealliance.org/protocols/ocpp/ocpp-16/) charge point simulator.
 
+The main page of it has moved to [https://github.com/NewMotion/docile-charge-point/](https://github.com/NewMotion/docile-charge-point/).
+
 Not as continuously ill-tempered as
 [abusive-charge-point](https://github.com/chargegrid/abusive-charge-point), but
 it can be mean if you script it to be.
@@ -36,6 +38,7 @@ so e.g.:
 
 ```
 sbt 'run -c chargepoint0123 -v 1.6 ws://example.org/ocpp-j-endpoint examples/heartbeat.scala'
+sbt 'run -c chargepoint4567 -v 1.6 -i -a abcdef1234abcdef1234abcdef1234abcdef1234 -k /path/to/keystore.jks -p mypass wss://example.org/ocpp-j-endpoint'
 ```
 
 See `sbt 'run --help'` for more options.
@@ -388,5 +391,3 @@ It's far from finished now. The next steps I plan to develop:
  * Web interface: click together test: 150 CPs behaving like this, 300 like that, ..., GO!
 
  * Live demo on the web?
-
-
