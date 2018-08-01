@@ -2,8 +2,6 @@
 
 A scriptable [OCPP](http://openchargealliance.org/protocols/ocpp/ocpp-16/) charge point simulator.
 
-The main page of it has moved to [https://github.com/NewMotion/docile-charge-point/](https://github.com/NewMotion/docile-charge-point/).
-
 Not as continuously ill-tempered as
 [abusive-charge-point](https://github.com/chargegrid/abusive-charge-point), but
 it can be mean if you script it to be.
