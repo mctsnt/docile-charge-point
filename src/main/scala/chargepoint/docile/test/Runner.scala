@@ -13,6 +13,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import chargepoint.docile.dsl._
 import com.thenewmotion.ocpp
 import com.typesafe.scalalogging.Logger
+import javax.net.ssl.SSLContext
 import org.slf4j.LoggerFactory
 
 case class RunnerConfig(
@@ -21,8 +22,7 @@ case class RunnerConfig(
   uri: URI,
   ocppVersion: ocpp.Version,
   authKey: Option[String],
-  keystoreFile: Option[String],
-  keystorePassword: Option[String],
+  sslContext: SSLContext,
   repeat: RepeatMode
 )
 
@@ -130,10 +130,8 @@ class Runner(testCases: Seq[TestCase]) {
       runnerCfg.chargePointId,
       runnerCfg.uri,
       runnerCfg.ocppVersion,
-      runnerCfg.authKey,
-      runnerCfg.keystoreFile,
-      runnerCfg.keystorePassword
-    )) match {
+      runnerCfg.authKey
+    )(runnerCfg.sslContext)) match {
       case Success(_)                => TestPassed
       case Failure(e: ScriptFailure) => TestFailed(e)
       case Failure(e: Exception)     => TestFailed(ExecutionError(e))

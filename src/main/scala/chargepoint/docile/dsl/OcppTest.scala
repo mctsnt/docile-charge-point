@@ -30,15 +30,9 @@ trait OcppTest extends MessageLogging {
     chargerId: String,
     endpoint: URI,
     version: Version,
-    authKey: Option[String],
-    keystoreFile: Option[String],
-    keystorePassword: Option[String]
-  ): Unit = {
-    connect(receivedMsgManager, chargerId, endpoint, version, authKey)(
-      keystoreFile.fold(SSLContext.getDefault) { file =>
-        SslContext(file, keystorePassword.getOrElse(""))
-      }
-    )
+    authKey: Option[String]
+  )(implicit sslContext: SSLContext): Unit = {
+    connect(receivedMsgManager, chargerId, endpoint, version, authKey)
     run()
     disconnect()
   }
