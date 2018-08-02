@@ -11,6 +11,7 @@ import com.typesafe.scalalogging.StrictLogging
 import org.rogach.scallop._
 import org.slf4j.LoggerFactory
 import test._
+import javax.net.ssl.SSLContext
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -99,7 +100,7 @@ object Main extends App with StrictLogging {
           conf.forever(),
           conf.repeat.toOption.exists(_ > 1),
           conf.untilSuccess()
-        ).filter(identity).size
+        ).count(identity)
 
       val senseChecks = List(
         "Tssk, grapjas" ->
@@ -112,7 +113,7 @@ object Main extends App with StrictLogging {
           (!conf.interactive() && !conf.files.toOption.exists(_.nonEmpty))
       )
 
-      senseChecks.filter(_._2).headOption.map(_._1).toLeft(())
+      senseChecks.find(_._2).map(_._1).toLeft(())
     }
 
     verify()
@@ -154,8 +155,11 @@ object Main extends App with StrictLogging {
     uri = conf.uri(),
     ocppVersion = conf.version(),
     authKey = conf.authKey.toOption,
-    keystoreFile = conf.keystoreFile.toOption,
-    keystorePassword = conf.keystorePassword.toOption,
+    sslContext = {
+      conf.keystoreFile.toOption.fold(SSLContext.getDefault) { file =>
+        SslContext(file, conf.keystorePassword.toOption.getOrElse(""))
+      }
+    },
     repeat = repeatMode
   )
 

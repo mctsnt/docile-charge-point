@@ -1,4 +1,4 @@
-package chargepoint.docile.dsl
+package chargepoint.docile
 
 import java.io.FileInputStream
 import java.security.KeyStore

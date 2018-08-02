@@ -2,6 +2,8 @@ enablePlugins(OssLibPlugin)
 
 scalaVersion := tnm.ScalaVersion.prev
 
+scalacOptions ++= Seq("-Xlint:-nullary-unit")
+
 crossScalaVersions := Seq(tnm.ScalaVersion.prev)
 
 name := "docile-charge-point"
