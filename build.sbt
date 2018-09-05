@@ -1,10 +1,6 @@
 enablePlugins(OssLibPlugin)
 
-scalaVersion := tnm.ScalaVersion.prev
-
 scalacOptions ++= Seq("-Xlint:-nullary-unit")
-
-crossScalaVersions := Seq(tnm.ScalaVersion.prev)
 
 name := "docile-charge-point"
 
@@ -17,14 +13,14 @@ assemblyJarName in assembly := "docile.jar"
 connectInput in run := true
 
 libraryDependencies ++= Seq(
-  "com.lihaoyi"                  % "ammonite"         % "1.0.3"    cross CrossVersion.full,
-  "com.thenewmotion.ocpp"       %% "ocpp-j-api"       % "7.0.0",
-  "org.rogach"                  %% "scallop"          % "3.1.1",
-  "org.scala-lang"               % "scala-compiler"   % "2.11.11",
+  "com.lihaoyi"                  % "ammonite"         % "1.1.2"    cross CrossVersion.full,
+  "com.thenewmotion.ocpp"       %% "ocpp-j-api"       % "8.0.0-SNAPSHOT",
+  "org.rogach"                  %% "scallop"          % "3.1.3",
+  "org.scala-lang"               % "scala-compiler"   % scalaVersion.value,
 
   "com.typesafe.scala-logging"  %% "scala-logging"    % "3.9.0",
   "org.slf4j"                    % "slf4j-api"        % "1.7.25",
   "ch.qos.logback"               % "logback-classic"  % "1.2.3",
 
-  "org.specs2"                  %% "specs2-core"      % "4.0.2"    % "test"
+  "org.specs2"                  %% "specs2-core"      % "4.3.4"    % "test"
 )

@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 import test._
 import javax.net.ssl.SSLContext
 
-import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.ExecutionContext
 
 object Main extends App with StrictLogging {
 
@@ -133,7 +133,7 @@ object Main extends App with StrictLogging {
 
   rootLogger.setLevel(rootLogLevel)
 
-  implicit val ec: ExecutionContextExecutor = concurrent.ExecutionContext.Implicits.global
+  implicit val ec: ExecutionContext = concurrent.ExecutionContext.Implicits.global
 
   conf.makesSense.left.foreach { errMsg =>
     logger.error(errMsg)
