@@ -1,5 +1,7 @@
 # docile-charge-point
 
+<img src="logos/docile-charge-point-zoom-circle.256x.png" alt="Logo" align="right">
+
 A scriptable [OCPP](http://openchargealliance.org/protocols/ocpp/ocpp-16/) charge point simulator.
 
 Not as continuously ill-tempered as
