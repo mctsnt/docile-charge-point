@@ -1,4 +1,4 @@
-# docile-charge-point
+# docile-charge-point [![Codacy Badge](https://api.codacy.com/project/badge/Grade/1a97f5dd32e24653b9b45d5c8b4a14b7)](https://www.codacy.com/app/reinierl/docile-charge-point)
 
 <img src="logos/docile-charge-point-zoom-circle.256x.png" alt="Logo" align="right">
 
