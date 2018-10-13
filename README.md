@@ -42,6 +42,8 @@ sbt 'run -c chargepoint0123 -v 1.6 ws://example.org/ocpp-j-endpoint examples/hea
 
 See `sbt 'run --help'` for more options.
 
+If you're looking for a Central System to run docile-charge-point against, check [SteVe](https://github.com/RWTH-i5-IDSG/steve) or [OCPP 1.6 Backend](https://github.com/gertjana/ocpp16-backend).
+
 ## Script structure
 
 The charge point scripts that you specify on the command line are ordinary
