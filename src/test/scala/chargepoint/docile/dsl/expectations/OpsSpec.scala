@@ -1,14 +1,12 @@
 package chargepoint.docile.dsl.expectations
 
-import chargepoint.docile.dsl.{AwaitTimeout, CoreOps, OcppConnectionData}
-import com.thenewmotion.ocpp.json.api.OcppError
-import com.thenewmotion.ocpp.messages._
-import org.specs2.mutable.Specification
-
-import scala.collection.JavaConversions._
-
+import scala.collection.JavaConverters._
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
+import chargepoint.docile.dsl.{AwaitTimeout, CoreOps, OcppConnectionData}
+import com.thenewmotion.ocpp.json.api.OcppError
+import com.thenewmotion.ocpp.messages.v1x._
+import org.specs2.mutable.Specification
 
 class OpsSpec extends Specification {
 
@@ -41,7 +39,7 @@ class OpsSpec extends Specification {
     private val requestsQueue: BlockingQueue[IncomingMessage] = new ArrayBlockingQueue[IncomingMessage](1000)
     private val responsesQueue: BlockingQueue[ChargePointRes] = new ArrayBlockingQueue[ChargePointRes](1000)
 
-    def responses: Iterable[ChargePointRes] = responsesQueue.toIterable
+    def responses: Iterable[ChargePointRes] = responsesQueue.asScala
 
     private def enqueueResponse(x: ChargePointRes): Unit = {
       responsesQueue.put(x)

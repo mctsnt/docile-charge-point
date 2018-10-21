@@ -1,7 +1,7 @@
 package chargepoint.docile.dsl
 
 import chargepoint.docile.dsl.expectations.IncomingMessage
-import com.thenewmotion.ocpp.messages._
+import com.thenewmotion.ocpp.messages.v1x._
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import org.specs2.concurrent.ExecutionEnv

@@ -6,7 +6,7 @@ import ch.qos.logback.classic.{Level, Logger}
 
 import scala.util.{Failure, Success, Try}
 import chargepoint.docile.dsl.{ExecutionError, ExpectationFailed}
-import com.thenewmotion.ocpp.Version
+import com.thenewmotion.ocpp.{Version, Version1X}
 import com.typesafe.scalalogging.StrictLogging
 import org.rogach.scallop._
 import org.slf4j.LoggerFactory
@@ -18,14 +18,17 @@ import scala.concurrent.ExecutionContext
 object Main extends App with StrictLogging {
 
   object conf extends ScallopConf(args) {
-    implicit val versionConverter =
+    implicit val version1XConverter =
       singleArgConverter(
-        Version.withName(_).get, {
+        Version.withName(_).get match {
+          case Version.V20 => throw new NoSuchElementException("OCPP 2.0 is not yet supported")
+          case v: Version1X => v
+        }, {
           case _: NoSuchElementException => Left("Invalid OCPP version provided")
         }
       )
 
-    val version = opt[Version](
+    val version = opt[Version1X](
       default = Some(Version.V16),
       descr = "OCPP version"
     )

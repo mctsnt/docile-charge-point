@@ -20,7 +20,7 @@ case class RunnerConfig(
   number: Int,
   chargePointId: String,
   uri: URI,
-  ocppVersion: ocpp.Version,
+  ocppVersion: ocpp.Version1X,
   authKey: Option[String],
   sslContext: SSLContext,
   repeat: RepeatMode
@@ -170,7 +170,7 @@ object Runner {
     val toolbox = currentMirror.mkToolBox()
 
     val preamble = s"""
-                   |import com.thenewmotion.ocpp.messages._
+                   |import com.thenewmotion.ocpp.messages.v1x._
                    |
                    |import scala.language.postfixOps
                    |import scala.concurrent.duration._

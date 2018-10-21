@@ -4,7 +4,7 @@ package shortsend
 
 import java.time.ZonedDateTime
 import scala.reflect.ClassTag
-import com.thenewmotion.ocpp.messages._
+import com.thenewmotion.ocpp.messages.v1x._
 
 trait Ops {
 

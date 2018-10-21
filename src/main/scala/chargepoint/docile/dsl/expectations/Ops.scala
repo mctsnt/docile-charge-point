@@ -2,7 +2,7 @@ package chargepoint.docile
 package dsl
 package expectations
 
-import com.thenewmotion.ocpp.messages._
+import com.thenewmotion.ocpp.messages.v1x._
 import com.thenewmotion.ocpp.json.PayloadErrorCode
 import com.thenewmotion.ocpp.json.api.OcppError
 
