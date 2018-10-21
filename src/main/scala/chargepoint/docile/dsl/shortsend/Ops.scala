@@ -5,10 +5,27 @@ package shortsend
 import java.time.ZonedDateTime
 import scala.reflect.ClassTag
 import com.thenewmotion.ocpp.messages.v1x._
+import com.thenewmotion.ocpp.VersionFamily
 
-trait Ops {
+trait OpsV1X {
 
-  self: CoreOps with expectations.Ops =>
+  self: CoreOps[
+    VersionFamily.V1X.type,
+    CentralSystemReq,
+    CentralSystemRes,
+    CentralSystemReqRes,
+    ChargePointReq,
+    ChargePointRes,
+    ChargePointReqRes
+  ] with expectations.Ops[
+    VersionFamily.V1X.type,
+    CentralSystemReq,
+    CentralSystemRes,
+    CentralSystemReqRes,
+    ChargePointReq,
+    ChargePointRes,
+    ChargePointReqRes
+ ] =>
 
   def authorize(idTag: String = "01020304")(
     implicit awaitTimeout: AwaitTimeout

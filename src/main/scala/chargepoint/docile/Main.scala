@@ -1,34 +1,29 @@
 package chargepoint.docile
 
 import java.net.URI
-
-import ch.qos.logback.classic.{Level, Logger}
-
+import javax.net.ssl.SSLContext
 import scala.util.{Failure, Success, Try}
-import chargepoint.docile.dsl.{ExecutionError, ExpectationFailed}
-import com.thenewmotion.ocpp.{Version, Version1X}
-import com.typesafe.scalalogging.StrictLogging
+import ch.qos.logback.classic.{Level, Logger}
 import org.rogach.scallop._
 import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.StrictLogging
+import com.thenewmotion.ocpp.Version
+import dsl._
 import test._
-import javax.net.ssl.SSLContext
 
 import scala.concurrent.ExecutionContext
 
 object Main extends App with StrictLogging {
 
   object conf extends ScallopConf(args) {
-    implicit val version1XConverter =
+    implicit val versionConverter =
       singleArgConverter(
-        Version.withName(_).get match {
-          case Version.V20 => throw new NoSuchElementException("OCPP 2.0 is not yet supported")
-          case v: Version1X => v
-        }, {
+        Version.withName(_).get, {
           case _: NoSuchElementException => Left("Invalid OCPP version provided")
         }
       )
 
-    val version = opt[Version1X](
+    val version = opt[Version](
       default = Some(Version.V16),
       descr = "OCPP version"
     )
@@ -143,6 +138,8 @@ object Main extends App with StrictLogging {
     sys.exit(1)
   }
 
+  val version = conf.version()
+
   val repeatMode =
     if (conf.repeat() > 1)
       Repeat(conf.repeat(), conf.repeatPause())
@@ -166,11 +163,11 @@ object Main extends App with StrictLogging {
     repeat = repeatMode
   )
 
-  val runner: Runner =
+  val runner: Runner[_] =
     if (conf.interactive())
-      Runner.interactive
+      Runner.interactive(conf.version().family)
     else
-      Runner.forFiles(conf.files())
+      Runner.forFiles(conf.version().family, conf.files())
 
   Try(runner.run(runnerCfg)) match {
     case Success(testsPassed) =>

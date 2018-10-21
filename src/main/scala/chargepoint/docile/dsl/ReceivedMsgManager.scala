@@ -1,18 +1,29 @@
 package chargepoint.docile.dsl
 
+import scala.language.higherKinds
 import scala.concurrent.{Future, Promise}
-import chargepoint.docile.dsl.expectations.IncomingMessage
+import chargepoint.docile.dsl.expectations.{IncomingMessage => GenericIncomingMessage}
+import com.thenewmotion.ocpp.messages.{ReqRes, Request, Response}
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.collection.mutable
 
-class ReceivedMsgManager extends StrictLogging {
+class ReceivedMsgManager[
+  OutReq <: Request,
+  InRes <: Response,
+  OutReqRes[_ <: OutReq, _ <: InRes] <: ReqRes[_, _],
+  InReq <: Request,
+  OutRes <: Response,
+  InReqRes[_ <: InReq, _ <: OutRes] <: ReqRes[_, _]
+] extends StrictLogging {
 
   import ReceivedMsgManager._
 
+  type IncomingMessage = GenericIncomingMessage[OutReq, InRes, OutReqRes, InReq, OutRes, InReqRes]
+
   private val messages = mutable.Queue[IncomingMessage]()
 
-  private val waiters = mutable.Queue[Waiter]()
+  private val waiters = mutable.Queue[Waiter[IncomingMessage]]()
 
   def enqueue(msg: IncomingMessage): Unit = synchronized {
     logger.debug(s"Enqueueing $msg")
@@ -24,7 +35,7 @@ class ReceivedMsgManager extends StrictLogging {
       logger.debug(s"Trying to dequeue $numMsgs")
 
       val promise = Promise[List[IncomingMessage]]()
-      waiters += Waiter(promise, numMsgs)
+      waiters += Waiter[IncomingMessage](promise, numMsgs)
 
       tryToDeliver()
       promise.future
@@ -63,5 +74,5 @@ class ReceivedMsgManager extends StrictLogging {
 }
 
 object ReceivedMsgManager {
-  private case class Waiter(promise: Promise[List[IncomingMessage]], numberOfMessages: Int)
+  private case class Waiter[T](promise: Promise[List[T]], numberOfMessages: Int)
 }

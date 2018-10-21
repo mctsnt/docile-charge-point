@@ -11,8 +11,22 @@ class ReceivedMsgManagerSpec(implicit ee: ExecutionEnv) extends Specification {
   "ReceivedMsgManager" should {
 
     "pass on messages to those that requested them" in {
-      val sut = new ReceivedMsgManager
-      val testMsg = IncomingMessage(StatusNotificationRes)
+      val sut = new ReceivedMsgManager[
+        CentralSystemReq,
+        CentralSystemRes,
+        CentralSystemReqRes,
+        ChargePointReq,
+        ChargePointRes,
+        ChargePointReqRes
+      ]
+      val testMsg = IncomingMessage[
+        CentralSystemReq,
+        CentralSystemRes,
+        CentralSystemReqRes,
+        ChargePointReq,
+        ChargePointRes,
+        ChargePointReqRes
+      ](StatusNotificationRes)
 
       val f = sut.dequeue(1)
 
@@ -24,8 +38,22 @@ class ReceivedMsgManagerSpec(implicit ee: ExecutionEnv) extends Specification {
     }
 
     "remember incoming messages until someone dequeues them" in {
-      val sut = new ReceivedMsgManager
-      val testMsg = IncomingMessage(StatusNotificationRes)
+      val sut = new ReceivedMsgManager[
+        CentralSystemReq,
+        CentralSystemRes,
+        CentralSystemReqRes,
+        ChargePointReq,
+        ChargePointRes,
+        ChargePointReqRes
+      ]
+      val testMsg = IncomingMessage[
+        CentralSystemReq,
+        CentralSystemRes,
+        CentralSystemReqRes,
+        ChargePointReq,
+        ChargePointRes,
+        ChargePointReqRes
+      ](StatusNotificationRes)
 
       sut.enqueue(testMsg)
 
@@ -33,8 +61,6 @@ class ReceivedMsgManagerSpec(implicit ee: ExecutionEnv) extends Specification {
     }
 
     "fulfill request for messages once enough are available" in new TestScope {
-      val sut = new ReceivedMsgManager
-
       sut.enqueue(testMsg(1))
       sut.enqueue(testMsg(2))
 
@@ -48,8 +74,6 @@ class ReceivedMsgManagerSpec(implicit ee: ExecutionEnv) extends Specification {
     }
 
     "allow a peek at what's in the queue" in new TestScope {
-      val sut = new ReceivedMsgManager
-
       sut.enqueue(testMsg(1))
       sut.enqueue(testMsg(2))
 
@@ -57,8 +81,6 @@ class ReceivedMsgManagerSpec(implicit ee: ExecutionEnv) extends Specification {
     }
 
     "flush the queue" in new TestScope {
-      val sut = new ReceivedMsgManager
-
       sut.enqueue(testMsg(1))
       sut.enqueue(testMsg(2))
 
@@ -73,9 +95,26 @@ class ReceivedMsgManagerSpec(implicit ee: ExecutionEnv) extends Specification {
   private trait TestScope extends Scope {
     val testIdTagInfo = IdTagInfo(status = AuthorizationStatus.Accepted)
 
-    def testMsg(seqNo: Int) = IncomingMessage(StartTransactionRes(
+    val sut = new ReceivedMsgManager[
+      CentralSystemReq,
+      CentralSystemRes,
+      CentralSystemReqRes,
+      ChargePointReq,
+      ChargePointRes,
+      ChargePointReqRes
+    ]
+
+    def testMsg(seqNo: Int) = IncomingMessage[
+      CentralSystemReq,
+      CentralSystemRes,
+      CentralSystemReqRes,
+      ChargePointReq,
+      ChargePointRes,
+      ChargePointReqRes
+    ](StartTransactionRes(
       transactionId = seqNo,
       idTag = testIdTagInfo
     ))
+
   }
 }

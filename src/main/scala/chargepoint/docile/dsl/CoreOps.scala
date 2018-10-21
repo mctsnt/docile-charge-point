@@ -3,22 +3,46 @@ package dsl
 
 import java.util.concurrent.TimeoutException
 
+import com.thenewmotion.ocpp.VersionFamily
+import com.thenewmotion.ocpp.VersionFamily.{CsMessageTypesForVersionFamily, CsmsMessageTypesForVersionFamily}
+
+import scala.language.higherKinds
 import scala.concurrent.duration._
-import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Await, ExecutionContext}
 import scala.util.{Failure, Success, Try}
-import com.thenewmotion.ocpp.messages.v1x.{CentralSystemReq, CentralSystemReqRes, CentralSystemRes}
-import com.thenewmotion.ocpp.json.api.OcppException
+import com.thenewmotion.ocpp.json.api.{OcppError, OcppException}
+import com.thenewmotion.ocpp.messages.{ReqRes, Request, Response}
 import com.typesafe.scalalogging.Logger
-import expectations.IncomingMessage
+import expectations.{IncomingMessage => GenericIncomingMessage}
 import org.slf4j.LoggerFactory
 
-trait CoreOps extends OpsLogging with MessageLogging {
+trait CoreOps[
+  VFam <: VersionFamily,
+  OutReq <: Request,
+  InRes <: Response,
+  OutReqRes[_ <: OutReq, _ <: InRes] <: ReqRes[_, _],
+  InReq <: Request,
+  OutRes <: Response,
+  InReqRes[_ <: InReq, _ <: OutRes] <: ReqRes[_, _]
+] extends OpsLogging with MessageLogging {
+
+
+  implicit val csmsMessageTypesForVersionFamily: CsmsMessageTypesForVersionFamily[VFam, OutReq, InRes, OutReqRes]
+  implicit val csMessageTypesForVersionFamily: CsMessageTypesForVersionFamily[VFam, InReq, OutRes, InReqRes]
+
+  implicit def executionContext: ExecutionContext
+
+  type IncomingMessage = GenericIncomingMessage[OutReq, InRes, OutReqRes, InReq, OutRes, InReqRes]
+  object IncomingMessage {
+    def apply(res: InRes): IncomingMessage = GenericIncomingMessage[OutReq, InRes, OutReqRes, InReq, OutRes, InReqRes](res)
+    def apply(req: InReq, respond: OutRes => Unit): IncomingMessage = GenericIncomingMessage[OutReq, InRes, OutReqRes, InReq, OutRes, InReqRes](req, respond)
+    def apply(error: OcppError): IncomingMessage = GenericIncomingMessage[OutReq, InRes, OutReqRes, InReq, OutRes, InReqRes](error)
+  }
 
   val logger = Logger(LoggerFactory.getLogger("script"))
   def say(m: String): Unit = logger.info(m)
 
-  protected def connectionData: OcppConnectionData
+  protected def connectionData: OcppConnectionData[VFam, OutReq, InRes, OutReqRes, InReq, OutRes, InReqRes]
 
   /**
    * Send an OCPP request to the Central System under test.
@@ -32,7 +56,7 @@ trait CoreOps extends OpsLogging with MessageLogging {
    * @param reqRes
    * @tparam Q
    */
-  def send[Q <: CentralSystemReq](req: Q)(implicit reqRes: CentralSystemReqRes[Q, _ <: CentralSystemRes]): Unit =
+  def send[Q <: OutReq](req: Q)(implicit reqRes: OutReqRes[Q, _ <: InRes]): Unit =
     connectionData.ocppClient match {
       case None =>
         throw ExpectationFailed("Trying to send an OCPP message while not connected")

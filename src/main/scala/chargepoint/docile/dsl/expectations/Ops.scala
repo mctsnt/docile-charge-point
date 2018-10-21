@@ -2,16 +2,29 @@ package chargepoint.docile
 package dsl
 package expectations
 
+import com.thenewmotion.ocpp.VersionFamily
+
+import scala.language.higherKinds
+import com.thenewmotion.ocpp.messages.{Message, ReqRes, Request, Response}
 import com.thenewmotion.ocpp.messages.v1x._
 import com.thenewmotion.ocpp.json.PayloadErrorCode
 import com.thenewmotion.ocpp.json.api.OcppError
 
-trait Ops {
-  self: CoreOps =>
+trait Ops[
+  VFam <: VersionFamily,
+  OutReq <: Request,
+  InRes <: Response,
+  OutReqRes[_ <: OutReq, _ <: InRes] <: ReqRes[_, _],
+  InReq <: Request,
+  OutRes <: Response,
+  InReqRes[_ <: InReq, _ <: OutRes] <: ReqRes[_, _]
+] {
+  self: CoreOps[VFam, OutReq, InRes, OutReqRes, InReq, OutRes, InReqRes] =>
 
   /** An IncomingMessageProcessor[T] is like a PartialFunction[T] with side effects */
   trait IncomingMessageProcessor[+T] {
     /** Whether this processor can do something with a certain incoming message */
+    // TODO add type alias in CoreOps to get rid of this VFam parameterization everywhere?
     def accepts(msg: IncomingMessage): Boolean
 
     /**
@@ -113,23 +126,23 @@ trait Ops {
 
   def matching[T](matchPF: PartialFunction[Message, T]): IncomingMessageProcessor[T] = {
       val incomingMessageMatcher: PartialFunction[IncomingMessage, Message] = {
-        case IncomingRequest(req, _) if matchPF.isDefinedAt(req) => req
-        case IncomingResponse(res)   if matchPF.isDefinedAt(res) => res
+        case msg: IncomingRequest[OutReq, InRes, OutReqRes, InReq, OutRes, InReqRes] if matchPF.isDefinedAt(msg.req) => msg.req
+        case msg: IncomingResponse[OutReq, InRes, OutReqRes, InReq, OutRes, InReqRes] if matchPF.isDefinedAt(msg.res) => msg.res
       }
 
       anything restrictedBy incomingMessageMatcher restrictedBy matchPF
     }
 
   def requestMatching[T](
-    requestMatch: PartialFunction[ChargePointReq, T]
+    requestMatch: PartialFunction[InReq, T]
   ): IncomingRequestProcessor[T] = new IncomingRequestProcessor[T] {
     def accepts(msg: IncomingMessage) = msg match {
-      case IncomingRequest(req, _) => requestMatch.isDefinedAt(req)
-      case _                       => false
+      case msg: IncomingRequest[OutReq, InRes, OutReqRes, InReq, OutRes, InReqRes] => requestMatch.isDefinedAt(msg.req)
+      case _                                                                       => false
     }
 
     def result(msg: IncomingMessage): T = msg match {
-      case IncomingRequest(req, _) => requestMatch(req)
+      case msg: IncomingRequest[OutReq, InRes, OutReqRes, InReq, OutRes, InReqRes] => requestMatch(msg.req)
       case _ => error(new RuntimeException(
           "IncomingRequestProcessor encountered non-request in result" +
           " method. The accepts method should have made this impossible."
@@ -140,7 +153,7 @@ trait Ops {
   }
 
   def error: IncomingMessageProcessor[OcppError] =
-    anything restrictedBy { case IncomingError(error) => error}
+    anything restrictedBy { case msg: IncomingError[OutReq, InRes, OutReqRes, InReq, OutRes, InReqRes] => msg.error }
 
   def errorWithCode(code: PayloadErrorCode): IncomingMessageProcessor[OcppError] =
     error restrictedBy { case e@OcppError(`code`, _) => e }
@@ -189,17 +202,17 @@ trait Ops {
   }
 
   implicit class RichIncomingRequestProcessor[T](self: IncomingRequestProcessor[T]) {
-    def respondingWith(res: ChargePointRes): IncomingRequestProcessor[T] = respondingWith(_ => res)
+    def respondingWith(res: OutRes): IncomingRequestProcessor[T] = respondingWith(_ => res)
 
-    def respondingWith(resBuilder: T => ChargePointRes): IncomingRequestProcessor[T] = new IncomingRequestProcessor[T] {
+    def respondingWith(resBuilder: T => OutRes): IncomingRequestProcessor[T] = new IncomingRequestProcessor[T] {
       def accepts(msg: IncomingMessage): Boolean = self.accepts(msg)
       def result(msg: IncomingMessage): T = self.result(msg)
       def fireSideEffects(msg: IncomingMessage): Unit = {
         self.fireSideEffects(msg)
         msg match {
-          case IncomingRequest(req, respond) =>
+          case msg: IncomingRequest[OutReq, InRes, OutReqRes, InReq, OutRes, InReqRes] =>
             val matchResult = result(msg)
-            respond(resBuilder(matchResult))
+            msg.respond(resBuilder(matchResult))
           case x =>
             fail(
               "Expecation failed: expected request, " +

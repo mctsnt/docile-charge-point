@@ -7,11 +7,13 @@ import java.net.URI
 import scala.tools.reflect.ToolBox
 import scala.util.{Failure, Success, Try}
 import scala.collection.mutable
-import scala.concurrent.{duration, Await, Future, Promise}
+import scala.concurrent.{Await, Future, Promise, duration}
 import duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
 import chargepoint.docile.dsl._
 import com.thenewmotion.ocpp
+import com.thenewmotion.ocpp.VersionFamily
+import com.thenewmotion.ocpp.VersionFamily.{V1X, V20}
 import com.typesafe.scalalogging.Logger
 import javax.net.ssl.SSLContext
 import org.slf4j.LoggerFactory
@@ -20,7 +22,7 @@ case class RunnerConfig(
   number: Int,
   chargePointId: String,
   uri: URI,
-  ocppVersion: ocpp.Version1X,
+  ocppVersion: ocpp.Version,
   authKey: Option[String],
   sslContext: SSLContext,
   repeat: RepeatMode
@@ -31,7 +33,7 @@ case class RunnerConfig(
   *
   * @param testCases The test cases to run
   */
-class Runner(testCases: Seq[TestCase]) {
+class Runner[VFam <: VersionFamily](testCases: Seq[TestCase[VFam]]) {
 
   private val logger: Logger = Logger(LoggerFactory.getLogger("runner"))
 
@@ -87,7 +89,7 @@ class Runner(testCases: Seq[TestCase]) {
     Await.result(Future.sequence(results.map(_.future)), Duration.Inf).toMap
   }
 
-  private def runRepeat(testCases: Seq[TestCase], runnerCfg: RunnerConfig, repeatMode: RunRepeated): Seq[Map[String, TestResult]] = {
+  private def runRepeat(testCases: Seq[TestCase[VFam]], runnerCfg: RunnerConfig, repeatMode: RunRepeated): Seq[Map[String, TestResult]] = {
     val (shouldIStop, msg): ((Int, Boolean) => Boolean, String) = repeatMode match {
       case Repeat(numberOfTimes, _) =>
         ((n, _) => n >= numberOfTimes,
@@ -119,17 +121,18 @@ class Runner(testCases: Seq[TestCase]) {
     res
   }
 
-  private def runOnce(testCases: Seq[TestCase], runnerCfg: RunnerConfig): Map[String, TestResult] =
+  private def runOnce(testCases: Seq[TestCase[VFam]], runnerCfg: RunnerConfig): Map[String, TestResult] =
     testCases.map(testCase => runCase(runnerCfg, testCase)).toMap
 
-  private def runCase(runnerCfg: RunnerConfig, c: TestCase): (String, TestResult) = {
+  private def runCase(runnerCfg: RunnerConfig, c: TestCase[VFam]): (String, TestResult) = {
     logger.info(s"Going to run ${c.name}")
 
-    val res = Try(c.test().runConnected(
-      new ReceivedMsgManager(),
+    val t = c.test()
+
+    val res = Try(t.runConnected(
       runnerCfg.chargePointId,
       runnerCfg.uri,
-      runnerCfg.ocppVersion,
+      runnerCfg.ocppVersion.asInstanceOf[t.VersionBound],
       runnerCfg.authKey
     )(runnerCfg.sslContext)) match {
       case Success(_)                => TestPassed
@@ -150,14 +153,14 @@ object Runner {
 
   private val logger = LoggerFactory.getLogger("runner")
 
-  def interactive: Runner = new Runner(
-    Seq(TestCase("Interactive test", () => new InteractiveOcppTest))
+  def interactive(vfam: VersionFamily): Runner[vfam.type] = new Runner[vfam.type](
+    Seq(TestCase("Interactive test", () => InteractiveOcppTest(vfam)))
   )
 
-  def forFiles(files: Seq[String]): Runner =
-    new Runner(files.map(loadFile))
+  def forFiles(vfam: VersionFamily, files: Seq[String]): Runner[vfam.type] =
+    new Runner(files.map(loadFile(vfam, _)))
 
-  private def loadFile(f: String): TestCase = {
+  private def loadFile(vfam: VersionFamily, f: String): TestCase[vfam.type] = {
 
     val file = new File(f)
     val testNameRegex = "(?:.*/)?([^/]+?)(?:\\.[^.]*)?$".r
@@ -169,8 +172,13 @@ object Runner {
     import reflect.runtime.currentMirror
     val toolbox = currentMirror.mkToolBox()
 
+    val messagesPackage = vfam match {
+      case V1X => "v1x"
+      case V20 => "v20"
+    }
+
     val preamble = s"""
-                   |import com.thenewmotion.ocpp.messages.v1x._
+                   |import com.thenewmotion.ocpp.messages.$messagesPackage._
                    |
                    |import scala.language.postfixOps
                    |import scala.concurrent.duration._
@@ -206,7 +214,7 @@ object Runner {
 
     logger.info(s"Compiled '$f'")
 
-    TestCase(testName, () => compiledCode().asInstanceOf[OcppTest])
+    TestCase(testName, () => compiledCode().asInstanceOf[OcppTest[vfam.type]])
   }
 }
 
