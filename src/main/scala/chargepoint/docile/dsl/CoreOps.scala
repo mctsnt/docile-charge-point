@@ -27,8 +27,8 @@ trait CoreOps[
 ] extends OpsLogging with MessageLogging {
 
 
-  implicit val csmsMessageTypesForVersionFamily: CsmsMessageTypesForVersionFamily[VFam, OutReq, InRes, OutReqRes]
-  implicit val csMessageTypesForVersionFamily: CsMessageTypesForVersionFamily[VFam, InReq, OutRes, InReqRes]
+  implicit val csmsMessageTypes: CsmsMessageTypesForVersionFamily[VFam, OutReq, InRes, OutReqRes]
+  implicit val csMessageTypes:     CsMessageTypesForVersionFamily[VFam, InReq, OutRes, InReqRes]
 
   implicit def executionContext: ExecutionContext
 

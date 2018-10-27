@@ -90,8 +90,8 @@ class OpsSpec extends Specification {
       ChargePointReqRes
     ] = new Ops[V1X.type, CentralSystemReq, CentralSystemRes, CentralSystemReqRes, ChargePointReq, ChargePointRes, ChargePointReqRes]
             with CoreOps[V1X.type, CentralSystemReq, CentralSystemRes, CentralSystemReqRes, ChargePointReq, ChargePointRes, ChargePointReqRes] {
-      implicit val csMessageTypesForVersionFamily = V1XChargePointMessages
-      implicit val csmsMessageTypesForVersionFamily = V1XCentralSystemRequest
+      implicit val csMessageTypes = V1XChargePointMessages
+      implicit val csmsMessageTypes = V1XCentralSystemRequest
       implicit val executionContext = global
 
       override protected def connectionData: OcppConnectionData[

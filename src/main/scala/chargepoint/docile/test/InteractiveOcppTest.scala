@@ -35,7 +35,7 @@ trait InteractiveOcppTest[VFam <: VersionFamily] {
 }
 
 abstract class InteractiveOcpp1XTest extends InteractiveOcppTest[VersionFamily.V1X.type] with Ocpp1XTest {
-  val ops: InteractiveOcpp1XTest.V1XOps
+  val ops: Ocpp1XTest.V1XOps
 
   protected val promptCommands: InteractiveOcpp1XTest.V1XPromptCommands
 
@@ -57,24 +57,6 @@ abstract class InteractiveOcpp1XTest extends InteractiveOcppTest[VersionFamily.V
 
 object InteractiveOcpp1XTest {
 
-  trait V1XOps extends CoreOps[
-    VersionFamily.V1X.type,
-    CentralSystemReq,
-    CentralSystemRes,
-    CentralSystemReqRes,
-    ChargePointReq,
-    ChargePointRes,
-    ChargePointReqRes
-  ] with expectations.Ops[
-    VersionFamily.V1X.type,
-    CentralSystemReq,
-    CentralSystemRes,
-    CentralSystemReqRes,
-    ChargePointReq,
-    ChargePointRes,
-    ChargePointReqRes
-  ] with shortsend.OpsV1X
-
   trait V1XPromptCommands extends InteractiveOcppTest.PromptCommands[
     VersionFamily.V1X.type,
     CentralSystemReq,
@@ -88,7 +70,7 @@ object InteractiveOcpp1XTest {
 
 abstract class InteractiveOcpp20Test extends InteractiveOcppTest[VersionFamily.V20.type] with Ocpp20Test {
 
-  val ops: InteractiveOcpp20Test.V20Ops
+  val ops: Ocpp20Test.V20Ops
 
   val promptCommands: InteractiveOcpp20Test.V20PromptCommands
 
@@ -110,24 +92,6 @@ abstract class InteractiveOcpp20Test extends InteractiveOcppTest[VersionFamily.V
 
 object InteractiveOcpp20Test {
 
-  trait V20Ops extends CoreOps[
-    VersionFamily.V20.type,
-    CsmsRequest,
-    CsmsResponse,
-    CsmsReqRes,
-    CsRequest,
-    CsResponse,
-    CsReqRes
-  ] with expectations.Ops[
-    VersionFamily.V20.type,
-    CsmsRequest,
-    CsmsResponse,
-    CsmsReqRes,
-    CsRequest,
-    CsResponse,
-    CsReqRes
-  ]
-
   trait V20PromptCommands extends InteractiveOcppTest.PromptCommands[
     VersionFamily.V20.type,
     CsmsRequest,
@@ -143,7 +107,7 @@ object InteractiveOcppTest {
 
   def apply(vfam: VersionFamily): OcppTest[vfam.type] = vfam match {
     case VersionFamily.V1X =>
-      // TODO such duplication, much sad
+
       new InteractiveOcpp1XTest {
 
         private def connDat = connectionData
@@ -152,13 +116,13 @@ object InteractiveOcppTest {
         implicit val csMessageTypes = VersionFamily.V1XChargePointMessages
         implicit val executionContext = global
 
-        val ops: InteractiveOcpp1XTest.V1XOps = new InteractiveOcpp1XTest.V1XOps
+        val ops: Ocpp1XTest.V1XOps = new Ocpp1XTest.V1XOps
                 with expectations.Ops[VersionFamily.V1X.type, CentralSystemReq, CentralSystemRes, CentralSystemReqRes, ChargePointReq, ChargePointRes, ChargePointReqRes]
                 with shortsend.OpsV1X {
           def connectionData = connDat
 
-          implicit val csmsMessageTypesForVersionFamily = VersionFamily.V1XCentralSystemRequest
-          implicit val csMessageTypesForVersionFamily = VersionFamily.V1XChargePointMessages
+          implicit val csmsMessageTypes = VersionFamily.V1XCentralSystemRequest
+          implicit val csMessageTypes = VersionFamily.V1XChargePointMessages
           implicit val executionContext = global
         }
 
@@ -177,12 +141,12 @@ object InteractiveOcppTest {
         implicit val csMessageTypes = VersionFamily.V20CsMessages
         implicit val executionContext = global
 
-        val ops: InteractiveOcpp20Test.V20Ops = new InteractiveOcpp20Test.V20Ops
+        val ops: Ocpp20Test.V20Ops = new Ocpp20Test.V20Ops
                 with expectations.Ops[VersionFamily.V20.type, CsmsRequest, CsmsResponse, CsmsReqRes, CsRequest, CsResponse, CsReqRes] {
           def connectionData = connDat
 
-          implicit val csmsMessageTypesForVersionFamily  = VersionFamily.V20CsmsMessages
-          implicit val csMessageTypesForVersionFamily = VersionFamily.V20CsMessages
+          implicit val csmsMessageTypes = VersionFamily.V20CsmsMessages
+          implicit val csMessageTypes = VersionFamily.V20CsMessages
           implicit val executionContext = global
         }
 

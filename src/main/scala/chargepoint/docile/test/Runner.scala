@@ -172,39 +172,13 @@ object Runner {
     import reflect.runtime.currentMirror
     val toolbox = currentMirror.mkToolBox()
 
-    val messagesPackage = vfam match {
-      case V1X => "v1x"
-      case V20 => "v20"
-    }
-
-    val preamble = s"""
-                   |import com.thenewmotion.ocpp.messages.$messagesPackage._
-                   |
-                   |import scala.language.postfixOps
-                   |import scala.concurrent.duration._
-                   |import scala.util.Random
-                   |import java.time._
-                   |import com.typesafe.scalalogging.Logger
-                   |import org.slf4j.LoggerFactory
-                   |
-                   |import chargepoint.docile.dsl.AwaitTimeout
-                   |import chargepoint.docile.dsl.Randomized._
-                   |
-                   |new chargepoint.docile.dsl.Ocpp1XTest
-                   |  with chargepoint.docile.dsl.CoreOps[
-                   |  with chargepoint.docile.dsl.expectations.Ops
-                   |  with chargepoint.docile.dsl.shortsend.Ops {
-                   |
-                   |  private implicit val awaitTimeout: AwaitTimeout = AwaitTimeout(45.seconds)
-                   |  private implicit val rand: Random = new Random()
-                   |
-                   |  def run() {
-                   """.stripMargin
     val appendix = ";\n  }\n}"
 
     val fileContents = scala.io.Source.fromFile(file).getLines.mkString("\n")
 
     logger.info(s"Parsing and compiling script '$f'")
+
+    val preamble = preambleForVersionFamily(vfam)
 
     val fileAst = toolbox.parse(preamble + fileContents + appendix)
 
@@ -215,6 +189,49 @@ object Runner {
     logger.info(s"Compiled '$f'")
 
     TestCase(testName, () => compiledCode().asInstanceOf[OcppTest[vfam.type]])
+  }
+
+  private def preambleForVersionFamily(vfam: VersionFamily): String = {
+    val (messagesPackage, instantiatedType, csmsMessagesWitness, csMessagesWitness) = vfam match {
+      case V1X => (
+        "v1x",
+        "chargepoint.docile.dsl.Ocpp1XTest with chargepoint.docile.dsl.Ocpp1XTest.V1XOps",
+        "com.thenewmotion.ocpp.VersionFamily.V1XCentralSystemRequest",
+        "com.thenewmotion.ocpp.VersionFamily.V1XChargePointMessages"
+      )
+      case V20 => (
+        "v20",
+        "chargepoint.docile.dsl.Ocpp20Test with chargepoint.docile.dsl.Ocpp20Test.V20Ops",
+        "com.thenewmotion.ocpp.VersionFamily.V20CsmsMessages",
+        "com.thenewmotion.ocpp.VersionFamily.V20CsMessages"
+      )
+    }
+
+    s"""
+       |import com.thenewmotion.ocpp.messages.$messagesPackage._
+       |
+       |import scala.language.postfixOps
+       |import scala.concurrent.duration._
+       |import scala.concurrent.ExecutionContext
+       |import scala.util.Random
+       |import java.time._
+       |import com.typesafe.scalalogging.Logger
+       |import org.slf4j.LoggerFactory
+       |
+       |import chargepoint.docile.dsl.AwaitTimeout
+       |import chargepoint.docile.dsl.Randomized._
+       |
+       |new $instantiatedType {
+       |
+       |  implicit val executionContext: ExecutionContext = ExecutionContext.global
+       |  implicit val csmsMessageTypes = $csmsMessagesWitness
+       |  implicit val csMessageTypes = $csMessagesWitness
+       |
+       |  private implicit val awaitTimeout: AwaitTimeout = AwaitTimeout(45.seconds)
+       |  private implicit val rand: Random = new Random()
+       |
+       |  def run() {
+     """.stripMargin
   }
 }
 

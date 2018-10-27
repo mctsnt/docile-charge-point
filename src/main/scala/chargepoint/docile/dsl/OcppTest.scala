@@ -173,6 +173,27 @@ trait Ocpp1XTest extends OcppTest[VersionFamily.V1X.type] {
   }
 }
 
+object Ocpp1XTest {
+
+  trait V1XOps extends CoreOps[
+    VersionFamily.V1X.type,
+    CentralSystemReq,
+    CentralSystemRes,
+    CentralSystemReqRes,
+    ChargePointReq,
+    ChargePointRes,
+    ChargePointReqRes
+    ] with expectations.Ops[
+    VersionFamily.V1X.type,
+    CentralSystemReq,
+    CentralSystemRes,
+    CentralSystemReqRes,
+    ChargePointReq,
+    ChargePointRes,
+    ChargePointReqRes
+    ] with shortsend.OpsV1X
+}
+
 trait Ocpp20Test extends OcppTest[VersionFamily.V20.type] {
 
   override type OutgoingReqBound = CsmsRequest
@@ -201,6 +222,27 @@ trait Ocpp20Test extends OcppTest[VersionFamily.V20.type] {
   )(implicit sslCtx: SSLContext): CsRequestHandler => Ocpp20JsonClient = { reqHandler =>
     OcppJsonClient.forVersion20(chargePointId, endpoint, authKey)(reqHandler)(executionContext, sslCtx)
   }
+}
+
+object Ocpp20Test {
+
+  trait V20Ops extends CoreOps[
+    VersionFamily.V20.type,
+    CsmsRequest,
+    CsmsResponse,
+    CsmsReqRes,
+    CsRequest,
+    CsResponse,
+    CsReqRes
+    ] with expectations.Ops[
+    VersionFamily.V20.type,
+    CsmsRequest,
+    CsmsResponse,
+    CsmsReqRes,
+    CsRequest,
+    CsResponse,
+    CsReqRes
+    ]
 }
 
 case class OcppConnectionData[
