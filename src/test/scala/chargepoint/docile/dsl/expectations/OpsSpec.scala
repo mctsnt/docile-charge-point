@@ -5,7 +5,7 @@ import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.global
 import chargepoint.docile.dsl.{AwaitTimeout, CoreOps, OcppConnectionData}
-import com.thenewmotion.ocpp.VersionFamily.{V1X, V1XCentralSystemRequest, V1XChargePointMessages}
+import com.thenewmotion.ocpp.VersionFamily.{V1X, V1XCentralSystemMessages, V1XChargePointMessages}
 import com.thenewmotion.ocpp.json.api.OcppError
 import com.thenewmotion.ocpp.messages.v1x._
 import org.specs2.mutable.Specification
@@ -91,7 +91,7 @@ class OpsSpec extends Specification {
     ] = new Ops[V1X.type, CentralSystemReq, CentralSystemRes, CentralSystemReqRes, ChargePointReq, ChargePointRes, ChargePointReqRes]
             with CoreOps[V1X.type, CentralSystemReq, CentralSystemRes, CentralSystemReqRes, ChargePointReq, ChargePointRes, ChargePointReqRes] {
       implicit val csMessageTypes = V1XChargePointMessages
-      implicit val csmsMessageTypes = V1XCentralSystemRequest
+      implicit val csmsMessageTypes = V1XCentralSystemMessages
       implicit val executionContext = global
 
       override protected def connectionData: OcppConnectionData[

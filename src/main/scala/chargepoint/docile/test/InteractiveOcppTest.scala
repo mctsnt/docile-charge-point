@@ -112,7 +112,7 @@ object InteractiveOcppTest {
 
         private def connDat = connectionData
 
-        implicit val csmsMessageTypes = VersionFamily.V1XCentralSystemRequest
+        implicit val csmsMessageTypes = VersionFamily.V1XCentralSystemMessages
         implicit val csMessageTypes = VersionFamily.V1XChargePointMessages
         implicit val executionContext = global
 
@@ -121,7 +121,7 @@ object InteractiveOcppTest {
                 with shortsend.OpsV1X {
           def connectionData = connDat
 
-          implicit val csmsMessageTypes = VersionFamily.V1XCentralSystemRequest
+          implicit val csmsMessageTypes = VersionFamily.V1XCentralSystemMessages
           implicit val csMessageTypes = VersionFamily.V1XChargePointMessages
           implicit val executionContext = global
         }

@@ -196,7 +196,7 @@ object Runner {
       case V1X => (
         "v1x",
         "chargepoint.docile.dsl.Ocpp1XTest with chargepoint.docile.dsl.Ocpp1XTest.V1XOps",
-        "com.thenewmotion.ocpp.VersionFamily.V1XCentralSystemRequest",
+        "com.thenewmotion.ocpp.VersionFamily.V1XCentralSystemMessages",
         "com.thenewmotion.ocpp.VersionFamily.V1XChargePointMessages"
       )
       case V20 => (
