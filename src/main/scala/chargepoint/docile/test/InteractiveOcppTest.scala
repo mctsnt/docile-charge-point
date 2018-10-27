@@ -1,26 +1,17 @@
 package chargepoint.docile
 package test
 
+import scala.language.higherKinds
 import scala.concurrent.ExecutionContext.global
 import com.thenewmotion.ocpp.VersionFamily
+import com.thenewmotion.ocpp.messages.{Request, Response, ReqRes}
 import com.thenewmotion.ocpp.messages.v1x.{CentralSystemReq, CentralSystemReqRes, CentralSystemRes, ChargePointReq, ChargePointReqRes, ChargePointRes}
-import com.thenewmotion.ocpp.messages.v20._
+import com.thenewmotion.ocpp.messages.v20.{CsmsRequest, CsmsResponse, CsmsReqRes, CsRequest, CsResponse, CsReqRes}
 import dsl._
 
 trait InteractiveOcppTest[VFam <: VersionFamily] {
 
   self: OcppTest[VFam] =>
-
-  trait PromptCommands {
-
-    def q: Unit =
-      connectionData.receivedMsgManager.currentQueueContents foreach println
-
-    def whoami: Unit =
-      println(connectionData.chargePointIdentity)
-  }
-
-  protected val promptCommands = new PromptCommands {}
 
   protected def importsSnippet: String =
     """
@@ -43,23 +34,19 @@ trait InteractiveOcppTest[VFam <: VersionFamily] {
 
 }
 
-trait InteractiveOcpp1XTest extends InteractiveOcppTest[VersionFamily.V1X.type] with Ocpp1XTest {
-  trait V1XOps extends CoreOps[
-    VersionFamily.V1X.type,
-    CentralSystemReq,
-    CentralSystemRes,
-    CentralSystemReqRes,
-    ChargePointReq,
-    ChargePointRes,
-    ChargePointReqRes
-  ]
+abstract class InteractiveOcpp1XTest extends InteractiveOcppTest[VersionFamily.V1X.type] with Ocpp1XTest {
+  val ops: InteractiveOcpp1XTest.V1XOps
 
-  val ops: V1XOps
+  protected val promptCommands: InteractiveOcpp1XTest.V1XPromptCommands
 
   def run(): Unit = {
 
+      val predefCode = importsSnippet +
+                       """
+                         | import com.thenewmotion.ocpp.messages.v1x._
+                       """.stripMargin
 
-      ammonite.Main(predefCode = importsSnippet).run(
+      ammonite.Main(predefCode = predefCode).run(
         "ops" -> ops,
         "promptCommands" -> promptCommands
       )
@@ -68,8 +55,70 @@ trait InteractiveOcpp1XTest extends InteractiveOcppTest[VersionFamily.V1X.type] 
   }
 }
 
-trait InteractiveOcpp20Test extends InteractiveOcppTest[VersionFamily.V20.type] with Ocpp20Test {
+object InteractiveOcpp1XTest {
+
+  trait V1XOps extends CoreOps[
+    VersionFamily.V1X.type,
+    CentralSystemReq,
+    CentralSystemRes,
+    CentralSystemReqRes,
+    ChargePointReq,
+    ChargePointRes,
+    ChargePointReqRes
+  ] with expectations.Ops[
+    VersionFamily.V1X.type,
+    CentralSystemReq,
+    CentralSystemRes,
+    CentralSystemReqRes,
+    ChargePointReq,
+    ChargePointRes,
+    ChargePointReqRes
+  ] with shortsend.OpsV1X
+
+  trait V1XPromptCommands extends InteractiveOcppTest.PromptCommands[
+    VersionFamily.V1X.type,
+    CentralSystemReq,
+    CentralSystemRes,
+    CentralSystemReqRes,
+    ChargePointReq,
+    ChargePointRes,
+    ChargePointReqRes
+  ]
+}
+
+abstract class InteractiveOcpp20Test extends InteractiveOcppTest[VersionFamily.V20.type] with Ocpp20Test {
+
+  val ops: InteractiveOcpp20Test.V20Ops
+
+  val promptCommands: InteractiveOcpp20Test.V20PromptCommands
+
+  def run(): Unit = {
+
+    val predefCode = importsSnippet +
+      """
+        | import com.thenewmotion.ocpp.messages.v20._
+      """.stripMargin
+
+    ammonite.Main(predefCode = predefCode).run(
+      "ops" -> ops,
+      "promptCommands" -> promptCommands
+    )
+
+    ()
+  }
+}
+
+object InteractiveOcpp20Test {
+
   trait V20Ops extends CoreOps[
+    VersionFamily.V20.type,
+    CsmsRequest,
+    CsmsResponse,
+    CsmsReqRes,
+    CsRequest,
+    CsResponse,
+    CsReqRes
+  ] with expectations.Ops[
     VersionFamily.V20.type,
     CsmsRequest,
     CsmsResponse,
@@ -79,18 +128,15 @@ trait InteractiveOcpp20Test extends InteractiveOcppTest[VersionFamily.V20.type] 
     CsReqRes
   ]
 
-  val ops: V20Ops
-
-  def run(): Unit = {
-
-
-    ammonite.Main(predefCode = importsSnippet).run(
-      "ops" -> ops,
-      "promptCommands" -> promptCommands
-    )
-
-    ()
-  }
+  trait V20PromptCommands extends InteractiveOcppTest.PromptCommands[
+    VersionFamily.V20.type,
+    CsmsRequest,
+    CsmsResponse,
+    CsmsReqRes,
+    CsRequest,
+    CsResponse,
+    CsReqRes
+  ]
 }
 
 object InteractiveOcppTest {
@@ -106,15 +152,21 @@ object InteractiveOcppTest {
         implicit val csMessageTypes = VersionFamily.V1XChargePointMessages
         implicit val executionContext = global
 
-        val ops: V1XOps = new V1XOps
-                with expectations.Ops[VersionFamily.V1X.type, CentralSystemReq, CentralSystemRes, CentralSystemReqRes, ChargePointReq, ChargePointRes, ChargePointReqRes] with shortsend.OpsV1X {
+        val ops: InteractiveOcpp1XTest.V1XOps = new InteractiveOcpp1XTest.V1XOps
+                with expectations.Ops[VersionFamily.V1X.type, CentralSystemReq, CentralSystemRes, CentralSystemReqRes, ChargePointReq, ChargePointRes, ChargePointReqRes]
+                with shortsend.OpsV1X {
           def connectionData = connDat
 
           implicit val csmsMessageTypesForVersionFamily = VersionFamily.V1XCentralSystemRequest
           implicit val csMessageTypesForVersionFamily = VersionFamily.V1XChargePointMessages
           implicit val executionContext = global
         }
+
+        val promptCommands: InteractiveOcpp1XTest.V1XPromptCommands = new InteractiveOcpp1XTest.V1XPromptCommands {
+          def connectionData = connDat
+        }
       }.asInstanceOf[OcppTest[vfam.type]]
+
     case VersionFamily.V20 =>
 
       new InteractiveOcpp20Test {
@@ -125,7 +177,7 @@ object InteractiveOcppTest {
         implicit val csMessageTypes = VersionFamily.V20CsMessages
         implicit val executionContext = global
 
-        val ops: V20Ops = new V20Ops
+        val ops: InteractiveOcpp20Test.V20Ops = new InteractiveOcpp20Test.V20Ops
                 with expectations.Ops[VersionFamily.V20.type, CsmsRequest, CsmsResponse, CsmsReqRes, CsRequest, CsResponse, CsReqRes] {
           def connectionData = connDat
 
@@ -133,10 +185,13 @@ object InteractiveOcppTest {
           implicit val csMessageTypesForVersionFamily = VersionFamily.V20CsMessages
           implicit val executionContext = global
         }
+
+        val promptCommands: InteractiveOcpp20Test.V20PromptCommands = new InteractiveOcpp20Test.V20PromptCommands {
+          def connectionData = connDat
+        }
       }.asInstanceOf[OcppTest[vfam.type]]
   }
 
-  /*
   trait PromptCommands[
     VFam <: VersionFamily,
     OutReq <: Request,
@@ -155,5 +210,4 @@ object InteractiveOcppTest {
     def whoami: Unit =
       println(connectionData.chargePointIdentity)
   }
-  */
 }

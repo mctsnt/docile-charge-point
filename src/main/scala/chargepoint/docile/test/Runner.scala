@@ -190,8 +190,8 @@ object Runner {
                    |import chargepoint.docile.dsl.AwaitTimeout
                    |import chargepoint.docile.dsl.Randomized._
                    |
-                   |new chargepoint.docile.dsl.OcppTest
-                   |  with chargepoint.docile.dsl.CoreOps
+                   |new chargepoint.docile.dsl.Ocpp1XTest
+                   |  with chargepoint.docile.dsl.CoreOps[
                    |  with chargepoint.docile.dsl.expectations.Ops
                    |  with chargepoint.docile.dsl.shortsend.Ops {
                    |
