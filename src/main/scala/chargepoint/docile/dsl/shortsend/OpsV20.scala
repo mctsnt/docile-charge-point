@@ -72,7 +72,7 @@ trait OpsV20 {
       stoppedReason = None,
       remoteStartId = None
     ),
-    evse: EVSE = EVSE(1, Some(1)),
+    evse: Option[EVSE] = Some(EVSE(1, Some(1))),
     idToken: Option[IdToken] = Some(defaultIdToken)
   )(
     implicit awaitTimeout: AwaitTimeout
