@@ -242,7 +242,8 @@ object Ocpp20Test {
     CsRequest,
     CsResponse,
     CsReqRes
-    ]
+    ] with shortsend.OpsV20
+    with ocpp20transactions.Ops
 }
 
 case class OcppConnectionData[
