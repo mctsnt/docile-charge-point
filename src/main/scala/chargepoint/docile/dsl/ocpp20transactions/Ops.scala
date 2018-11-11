@@ -37,16 +37,7 @@ trait Ops {
     CsRequest,
     CsResponse,
     CsReqRes
-    ] with
-    expectations.Ops[
-      VersionFamily.V20.type,
-      CsmsRequest,
-      CsmsResponse,
-      CsmsReqRes,
-      CsRequest,
-      CsResponse,
-      CsReqRes
-      ] =>
+    ] =>
 
   val transactionMessageCounters: mutable.Map[Int, Int] = mutable.Map.empty[Int, Int]
 
@@ -174,8 +165,8 @@ trait Ops {
     }
 
     def end(
-      triggerReason: TriggerReason,
-      stoppedReason: Reason
+      triggerReason: TriggerReason = TriggerReason.Deauthorized,
+      stoppedReason: Reason = Reason.DeAuthorized
     ): TransactionEventRequest = {
       val seqNo = getAndIncrementTxCounter(evseId)
       data = data.copy(chargingState = None, stoppedReason = Some(stoppedReason))
