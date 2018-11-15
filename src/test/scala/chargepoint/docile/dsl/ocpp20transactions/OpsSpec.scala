@@ -28,6 +28,18 @@ class OpsSpec extends Specification {
       (req0.seqNo, req1.seqNo, req2.seqNo) mustEqual ((0, 1, 2))
     }
 
+    "return transaction messages with incrementing sequence numbers over multiple transactions" in new TestScope {
+      val (tx0, req0) = startTransactionAtCablePluggedIn()
+
+      val req1 = tx0.end()
+
+      val (tx1, req2) = startTransactionAtAuthorized()
+
+      val req3 = tx1.end()
+
+      List(req0, req1, req2, req3).map(_.seqNo) mustEqual 0.to(3).toList
+    }
+
     "specify the EVSE and connector ID on the first message, and not later" in new TestScope {
       val (tx, req0) = startTransactionAtAuthorized(evseId = 2, connectorId = 3)
 

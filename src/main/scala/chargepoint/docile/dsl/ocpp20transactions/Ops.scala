@@ -44,7 +44,7 @@ trait Ops {
   def startTransactionAtAuthorized(
     evseId: Int = 1,
     connectorId: Int = 1,
-    idToken: IdToken = IdToken(idToken = "01020304", `type` = IdTokenType.ISO14443, additionalInfo = None)
+    idToken: IdToken = defaultIdToken
   ): (StartedTransaction, TransactionEventRequest) = {
     val transactionData = Transaction(
       id = UUID.randomUUID().toString,
@@ -123,7 +123,7 @@ trait Ops {
       * @param connectorId
       */
     def authorize(
-      idToken: IdToken = IdToken(idToken = "01020304", `type` = IdTokenType.ISO14443, additionalInfo = None)
+      idToken: IdToken = defaultIdToken
     ): TransactionEventRequest = {
       data = data.copy(chargingState = Some(ChargingState.Charging))
 
@@ -141,6 +141,15 @@ trait Ops {
 
       update(data, TriggerReason.ChargingStateChanged)
     }
+
+    def suspendOnDeauthorization(): TransactionEventRequest = {
+      data = data.copy(chargingState = Some(ChargingState.SuspendedEVSE))
+
+      update(data, triggerReason = TriggerReason.Deauthorized)
+    }
+
+    def stopAuthorized(): TransactionEventRequest =
+      update(data, triggerReason = TriggerReason.StopAuthorized, idToken = Some(defaultIdToken))
 
     def update(
       transactionData: Transaction,
@@ -166,7 +175,8 @@ trait Ops {
 
     def end(
       triggerReason: TriggerReason = TriggerReason.Deauthorized,
-      stoppedReason: Reason = Reason.DeAuthorized
+      stoppedReason: Reason = Reason.DeAuthorized,
+      finalState: Option[ChargingState] = None
     ): TransactionEventRequest = {
       val seqNo = getAndIncrementTxCounter(evseId)
       data = data.copy(chargingState = None, stoppedReason = Some(stoppedReason))
@@ -185,6 +195,7 @@ trait Ops {
         evse = None
       )
     }
+
   }
 
   private def getAndIncrementTxCounter(evseId: Int): Int =
@@ -196,6 +207,8 @@ trait Ops {
         transactionMessageCounters.update(evseId, counter + 1)
         counter
     }
+
+  val defaultIdToken = IdToken(idToken = "01020304", `type` = IdTokenType.ISO14443, additionalInfo = None)
 }
 
 case class EvseState(
