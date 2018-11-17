@@ -4,7 +4,6 @@ package ocpp20transactions
 
 import java.time.Instant
 import java.util.UUID
-
 import scala.collection.mutable
 import com.thenewmotion.ocpp.VersionFamily
 import com.thenewmotion.ocpp.messages.v20._
@@ -100,7 +99,20 @@ trait Ops {
       eventType = TransactionEvent.Started,
       triggerReason = triggerReason,
       transactionData = transactionData,
-      meterValue = None,
+      meterValue = Some(List(
+        MeterValue(List(
+          SampledValue(
+            value = BigDecimal(0.0),
+            context = Some(ReadingContext.TransactionBegin),
+            measurand = None,
+            phase = None,
+            location = None,
+            signedMeterValue = None,
+            unitOfMeasure = None
+          )),
+          Instant.now()
+        )
+      )),
       timestamp = Instant.now(),
       offline = None,
       numberOfPhasesUsed = None,
@@ -148,13 +160,20 @@ trait Ops {
       update(data, triggerReason = TriggerReason.Deauthorized)
     }
 
-    def stopAuthorized(): TransactionEventRequest =
-      update(data, triggerReason = TriggerReason.StopAuthorized, idToken = Some(defaultIdToken))
+    def suspendOnEvCommunicationLoss(): TransactionEventRequest = {
+      data = data.copy(chargingState = Some(ChargingState.SuspendedEVSE))
+
+      update(data, triggerReason = TriggerReason.EVCommunicationLost)
+    }
+
+    def stopAuthorized(idToken: IdToken = defaultIdToken): TransactionEventRequest =
+      update(data, triggerReason = TriggerReason.StopAuthorized, idToken = Some(idToken))
 
     def update(
       transactionData: Transaction,
       triggerReason: TriggerReason,
       idToken: Option[IdToken] = None,
+      meterValue: Option[List[MeterValue]] = None
     ): TransactionEventRequest = {
       val seqNo = getAndIncrementTxCounter(evseId)
       TransactionEventRequest(
@@ -163,7 +182,7 @@ trait Ops {
         triggerReason = triggerReason,
         transactionData = transactionData,
         idToken = idToken,
-        meterValue = None,
+        meterValue = meterValue,
         timestamp = Instant.now(),
         offline = None,
         numberOfPhasesUsed = None,
@@ -186,7 +205,19 @@ trait Ops {
         triggerReason = triggerReason,
         transactionData = data,
         idToken = None,
-        meterValue = None,
+        meterValue = Some(List(
+          MeterValue(List(
+            SampledValue(
+              value = BigDecimal(1234.567),
+              context = Some(ReadingContext.TransactionEnd),
+              measurand = None,
+              phase = None,
+              location = None,
+              signedMeterValue = None,
+              unitOfMeasure = None
+            )),
+            Instant.now())
+        )),
         timestamp = Instant.now(),
         offline = None,
         numberOfPhasesUsed = None,
@@ -195,7 +226,6 @@ trait Ops {
         evse = None
       )
     }
-
   }
 
   private def getAndIncrementTxCounter(evseId: Int): Int =
@@ -210,8 +240,3 @@ trait Ops {
 
   val defaultIdToken = IdToken(idToken = "01020304", `type` = IdTokenType.ISO14443, additionalInfo = None)
 }
-
-case class EvseState(
-  transactionCounter: Int,
-  currentTx: Option[Transaction]
-)

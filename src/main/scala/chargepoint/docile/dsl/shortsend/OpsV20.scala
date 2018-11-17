@@ -104,7 +104,7 @@ trait OpsV20 {
       timestamp,
       connectorStatus,
       evseId,
-      connectorId,
+      connectorId
     ))
 
   def sendSync[REQ <: CsmsRequest, RES <: CsmsResponse : ClassTag](
