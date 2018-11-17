@@ -390,6 +390,21 @@ It's far from finished now. The next steps I plan to develop:
    complicated to manage in interactive mode otherwise. This autonomous
    default behavior should be overrideable of course.
 
+ * Show incoming messages that caused errors parsing or processing
+   (this might entail changes to the NewMotion OCPP library)
+
+ * Add a command line flag to drop to interactive mode, instead of exit,
+   when an assertion fails in a script
+
+ * Add a command in interactive mode to run a script from a file or URL
+
+ * Add a functionality to automatically respond to messages matching a
+   certain pattern in a certain way
+
+ * Messages of OCPP 2.0 that seem to be in demand:
+   * ChangeAvailability
+   * Reset
+
 ## Other ideas
 
  * Web interface: click together test: 150 CPs behaving like this, 300 like that, ..., GO!
