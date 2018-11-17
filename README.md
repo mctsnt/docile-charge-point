@@ -381,11 +381,14 @@ Note also that between those two requests, I used tab completion to look up the 
 
 It's far from finished now. The next steps I plan to develop:
 
- * More robust handling of connection closes and OCPP errors
-
- * Make it able to take both Central System and Charge Point roles
+ * Make it able to take both Charging Station Management System and Charging Station roles
 
  * Nicer syntax for constructing OCPP messages to send or expect
+
+ * For OCPP 2.0, build some autonomous, stateful management of
+   components, variables, transaction management. This stuff is too
+   complicated to manage in interactive mode otherwise. This autonomous
+   default behavior should be overrideable of course.
 
 ## Other ideas
 
