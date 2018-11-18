@@ -2,7 +2,9 @@
 
 <img src="logos/docile-charge-point-zoom-circle.256x.png" alt="Logo" align="right">
 
-A scriptable [OCPP](http://openchargealliance.org/protocols/ocpp/ocpp-16/) charge point simulator.
+A scriptable [OCPP](https://www.openchargealliance.org/protocols/ocpp-20/)
+charge point simulator. Supports OCPP 1.5, 1.6 and 2.0 using JSON over
+WebSocket as the transport.
 
 Not as continuously ill-tempered as
 [abusive-charge-point](https://github.com/chargegrid/abusive-charge-point), but
@@ -21,12 +23,20 @@ The aims for this thing:
 Scripts are expressed as Scala files, in which you can use predefined functions
 to send OCPP messages, make expectations about incoming messages or declare the
 test case failed. And next to that, all of Scala is at your disposal! Examples
-of behavior scripts it can run already are [a simple heartbeat script](examples/heartbeat.scala) and
-[a full simulation of a charge session](examples/do-a-transaction.scala). The full set of OCPP and testing specific
-functions can be found in
+of behavior scripts it can run already are a simple heartbeat script ([OCPP
+1.x](examples/ocpp1x/heartbeat.scala) / [OCPP
+2.0](examples/ocpp20/heartbeat.scala)) and a full simulation of a charge
+session ([OCPP 1.x](examples/ocpp1x/do-a-transaction.scala) / [OCPP
+2.0](examples/ocpp20/do-a-transaction.scala)). The full set of OCPP and testing
+specific functions can be found in
 [CoreOps](src/main/scala/chargepoint/docile/dsl/CoreOps.scala),
 [expectations.Ops](src/main/scala/chargepoint/docile/dsl/expectations/Ops.scala)
-and [shortsend.Ops](src/main/scala/chargepoint/docile/dsl/shortsend/Ops.scala).
+and `shortsend.Ops` ([OCPP
+1.x](src/main/scala/chargepoint/docile/dsl/shortsend/OpsV1X.scala) / [OCPP
+2.0](src/main/scala/chargepoint/docile/dsl/shortsend/OpsV20.scala)). For OCPP
+2.0, there is also a [special set of
+operations](src/main/scala/chargepoint/docile/dsl/ocpp20transactions/Ops.scala)
+to deal with the complicated stateful transaction management.
 
 You can run the simulator like this, from the root directory of the project:
 
@@ -274,7 +284,7 @@ option is used in order to tell the Central System whether the remote stop
 request is accepted, based on whether the remote stop request's transaction ID
 matched the one that the script had started.
 
-See [the remote start/stop example](examples/remote-transaction.scala) for the
+See the remote start/stop example [for OCPP 1.x](examples/ocpp1x/remote-transaction.scala) or [for OCPP 2.0](examples/ocpp20/remote-transaction.scala) for the
 full script using all these features.
 
 As you can see in the handling of the remote start request there, there is also
