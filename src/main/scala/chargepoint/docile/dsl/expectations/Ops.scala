@@ -86,6 +86,7 @@ trait Ops[
     }
   }
 
+  // Ignoring unmatched messages only works if we force close the ocpp connection.
   def expectAllIgnoringUnmatched[T](expectations: IncomingMessageProcessor[T]*)(implicit awaitTimeout: AwaitTimeout): Seq[T] = {
 
     def loop(matchesCount: Int, results: IndexedSeq[Option[T]]): IndexedSeq[Option[T]] = {
@@ -108,7 +109,7 @@ trait Ops[
             case None => matchesCount + 1
           }
 
-          opsLogger.info(s"Received $processorIndex: $m, $nextMatchesCount to go")
+          opsLogger.debug(s"Received $processorIndex: $m, $nextMatchesCount to go")
           loop(nextMatchesCount, nextResults)
         }
       }

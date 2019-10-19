@@ -137,7 +137,10 @@ trait OcppTest[VFam <: VersionFamily] extends MessageLogging {
   ]
 
   private def disconnect(): Unit = connectionData.ocppClient.foreach { conn =>
+    connectionLogger.info(s"Disconnecting...")
     Await.result(conn.close(), 45.seconds)
+    // Consider conn.connection.forceClose because DefaultSrpcConnection holds an up/down counter
+    // for all requests and responses and only completes a graceful close once the counter is zero.
   }
 
   protected def run(): Unit
