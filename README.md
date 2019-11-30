@@ -420,3 +420,8 @@ It's far from finished now. The next steps I plan to develop:
  * Web interface: click together test: 150 CPs behaving like this, 300 like that, ..., GO!
 
  * Live demo on the web?
+
+## Legal
+
+The contents of this repository are © 2017-2019 The New Motion B.V. and other
+contributors, licensed under the terms of the [GNU General Public License version 3](LICENSE).
