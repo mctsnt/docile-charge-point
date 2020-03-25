@@ -73,6 +73,11 @@ object Main extends App with StrictLogging {
       descr = "Number of milliseconds to wait between repeat runs"
     )
 
+    val timeout = opt[Int](
+      default = Some(45000),
+      descr = "Number of milliseconds to wait for expected incoming OCPP messages (-1 for no timeout)"
+    )
+
     val untilSuccess = toggle(
       default = Some(false),
       descrYes = "Keep executing scripts until they all succeed"
@@ -160,7 +165,12 @@ object Main extends App with StrictLogging {
         SslContext(file, conf.keystorePassword.toOption.getOrElse(""))
       }
     },
-    repeat = repeatMode
+    repeat = repeatMode,
+    defaultAwaitTimeout =
+      if (conf.timeout() < 0)
+        InfiniteAwaitTimeout
+      else
+        AwaitTimeoutInMillis(conf.timeout())
   )
 
   val runner: Runner[_] =

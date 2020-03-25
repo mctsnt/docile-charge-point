@@ -55,7 +55,8 @@ trait OcppTest[VFam <: VersionFamily] extends MessageLogging {
     chargePointId: String,
     endpoint: URI,
     version: VersionBound,
-    authKey: Option[String]
+    authKey: Option[String],
+    defaultAwaitTimeout: AwaitTimeout
   )(implicit sslContext: SSLContext): Unit = {
     val receivedMsgManager = new  ReceivedMsgManager[
       OutgoingReqBound,
@@ -67,7 +68,7 @@ trait OcppTest[VFam <: VersionFamily] extends MessageLogging {
     ]()
 
     connect(receivedMsgManager, chargePointId, endpoint, version, authKey)
-    run()
+    run(defaultAwaitTimeout)
     disconnect()
   }
 
@@ -140,7 +141,7 @@ trait OcppTest[VFam <: VersionFamily] extends MessageLogging {
     Await.result(conn.close(), 45.seconds)
   }
 
-  protected def run(): Unit
+  protected def run(defaultAwaitTimeout: AwaitTimeout): Unit
 }
 
 trait Ocpp1XTest extends OcppTest[VersionFamily.V1X.type] {

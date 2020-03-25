@@ -24,11 +24,10 @@ trait InteractiveOcppTest[VFam <: VersionFamily] {
       |import scala.util.Random
       |import java.time._
       |
-      |import chargepoint.docile.dsl.AwaitTimeout
+      |import chargepoint.docile.dsl.{AwaitTimeout, AwaitTimeoutInMillis, InfiniteAwaitTimeout}
       |import chargepoint.docile.dsl.Randomized._
       |
       |implicit val rand: Random = new Random()
-      |implicit val awaitTimeout: AwaitTimeout = AwaitTimeout(45.seconds)
       |
       """.stripMargin
 
@@ -39,11 +38,13 @@ abstract class InteractiveOcpp1XTest extends InteractiveOcppTest[VersionFamily.V
 
   protected val promptCommands: InteractiveOcpp1XTest.V1XPromptCommands
 
-  def run(): Unit = {
+  def run(defaultAwaitTimeout: AwaitTimeout): Unit = {
 
       val predefCode = importsSnippet +
-                       """
+                       s"""
                          | import com.thenewmotion.ocpp.messages.v1x._
+                         |
+                         | implicit val awaitTimeout: AwaitTimeout = ${defaultAwaitTimeout}
                        """.stripMargin
 
       ammonite.Main(predefCode = predefCode).run(
@@ -74,11 +75,13 @@ abstract class InteractiveOcpp20Test extends InteractiveOcppTest[VersionFamily.V
 
   val promptCommands: InteractiveOcpp20Test.V20PromptCommands
 
-  def run(): Unit = {
+  def run(defaultAwaitTimeout: AwaitTimeout): Unit = {
 
     val predefCode = importsSnippet +
-      """
+      s"""
         | import com.thenewmotion.ocpp.messages.v20._
+        |
+        | implicit val awaitTimeout: AwaitTimeout = ${defaultAwaitTimeout}
       """.stripMargin
 
     ammonite.Main(predefCode = predefCode).run(

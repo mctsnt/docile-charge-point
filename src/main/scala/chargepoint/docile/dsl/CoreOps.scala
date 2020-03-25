@@ -81,7 +81,7 @@ trait CoreOps[
 
   def awaitIncoming(num: Int)(implicit awaitTimeout: AwaitTimeout): Seq[IncomingMessage] = {
 
-    val AwaitTimeout(timeout) = awaitTimeout
+    val timeout = awaitTimeout.toDuration
     def getMsgs = connectionData.receivedMsgManager.dequeue(num)
 
     Try(Await.result(getMsgs, timeout)) match {

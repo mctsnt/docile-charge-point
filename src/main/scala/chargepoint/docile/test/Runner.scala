@@ -25,7 +25,8 @@ case class RunnerConfig(
   ocppVersion: ocpp.Version,
   authKey: Option[String],
   sslContext: SSLContext,
-  repeat: RepeatMode
+  repeat: RepeatMode,
+  defaultAwaitTimeout: AwaitTimeout
 )
 
 /**
@@ -133,7 +134,8 @@ class Runner[VFam <: VersionFamily](testCases: Seq[TestCase[VFam]]) {
       runnerCfg.chargePointId,
       runnerCfg.uri,
       runnerCfg.ocppVersion.asInstanceOf[t.VersionBound],
-      runnerCfg.authKey
+      runnerCfg.authKey,
+      runnerCfg.defaultAwaitTimeout
     )(runnerCfg.sslContext)) match {
       case Success(_)                => TestPassed
       case Failure(e: ScriptFailure) => TestFailed(e)
@@ -227,10 +229,11 @@ object Runner {
        |  implicit val csmsMessageTypes = $csmsMessagesWitness
        |  implicit val csMessageTypes = $csMessagesWitness
        |
-       |  private implicit val awaitTimeout: AwaitTimeout = AwaitTimeout(45.seconds)
        |  private implicit val rand: Random = new Random()
        |
-       |  def run() {
+       |  def run(defaultAwaitTimeout: AwaitTimeout) {
+       |    implicit val awaitTimeout: AwaitTimeout = defaultAwaitTimeout;
+       |
      """.stripMargin
   }
 }

@@ -2,9 +2,8 @@ package chargepoint.docile.dsl.expectations
 
 import scala.collection.JavaConverters._
 import scala.concurrent.TimeoutException
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.global
-import chargepoint.docile.dsl.{AwaitTimeout, CoreOps, OcppConnectionData}
+import chargepoint.docile.dsl.{AwaitTimeout, AwaitTimeoutInMillis, CoreOps, OcppConnectionData}
 import com.thenewmotion.ocpp.VersionFamily.{V1X, V1XCentralSystemMessages, V1XChargePointMessages}
 import com.thenewmotion.ocpp.json.api.OcppError
 import com.thenewmotion.ocpp.messages.v1x._
@@ -18,7 +17,7 @@ class OpsSpec extends Specification {
 
       import mock.ops._
 
-      implicit val awaitTimeout: AwaitTimeout = AwaitTimeout(5.seconds)
+      implicit val awaitTimeout: AwaitTimeout = AwaitTimeoutInMillis(5000)
 
       mock send GetConfigurationReq(keys = List())
       mock send ClearCacheReq
@@ -108,7 +107,7 @@ class OpsSpec extends Specification {
 
       override def awaitIncoming(num: Int)(implicit awaitTimeout: AwaitTimeout): Seq[IncomingMessage] = {
         for (_ <- 0 until num) yield {
-          val value = requestsQueue.poll(awaitTimeout.timeout.toMillis, TimeUnit.MILLISECONDS)
+          val value = requestsQueue.poll(awaitTimeout.toDuration.toMillis, TimeUnit.MILLISECONDS)
           if (value == null) {
             throw new TimeoutException("Failed to receive the message on time")
           }
