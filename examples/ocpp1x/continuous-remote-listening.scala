@@ -13,7 +13,7 @@ import scala.util._
 
 say("Waiting for remote start message")
 
-val noTimeout: AwaitTimeout = AwaitTimeout(scala.concurrent.duration.Duration.Inf)
+val noTimeout: AwaitTimeout = InfiniteAwaitTimeout
 val startRequest = expectIncoming(remoteStartTransactionReq.respondingWith(RemoteStartTransactionRes(true)))(noTimeout)
 val chargeTokenId = startRequest.idTag
 
@@ -29,7 +29,7 @@ if (auth.status == AuthorizationStatus.Accepted) {
 
   say(s"Transaction started with ID $transId; awaiting remote stop")
 
-  val stopTimeout = AwaitTimeout(FiniteDuration(30, "minutes"))
+  val stopTimeout = AwaitTimeoutInMillis(30.seconds.toMillis.toInt)
   def waitForValidRemoteStop(): Unit =
     Try(
       expectIncoming(
@@ -43,7 +43,7 @@ if (auth.status == AuthorizationStatus.Accepted) {
         say("Received RemoteStopTransaction request; stopping transaction")
         ()
       case Failure(ExpectationFailed(exc)) if exc.startsWith("Expected message not received after") =>
-        say(s"Received no RemoteStopTransaction within ${stopTimeout.timeout}; stopping transaction")
+        say(s"Received no RemoteStopTransaction within ${stopTimeout.toDuration}; stopping transaction")
         ()
       case Failure(ExpectationFailed(_)) =>
         say(s"Received RemoteStopTransaction request for other transaction with ID. I'll keep waiting for a stop for $transId.")
