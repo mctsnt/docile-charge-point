@@ -387,6 +387,20 @@ res4: StopTransactionRes = StopTransactionRes(Some(IdTagInfo(Accepted, None, Som
 
 Note also that between those two requests, I used tab completion to look up the name of the `transactionId` field in the StopTransaction request.
 
+## Docker
+
+There is now a Dockerfile included, so you can run it in Docker if you want. Also you can use the Docker image as a basis for your own images that encode certain charge point behaviors.
+
+To run it in Docker, do:
+
+```
+$ docker build -t docile-charge-point:latest .
+
+$ docker run --rm -it docile-charge-point:latest
+```
+
+See [the Dockerfile](Dockerfile) for available environment variables to control the image.
+
 ## TODOs
 
 It's far from finished now. The next steps I plan to develop:
