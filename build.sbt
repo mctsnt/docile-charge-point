@@ -5,7 +5,6 @@ enablePlugins(OssLibPlugin)
 
 lazy val commonSettings = Seq(
   organization := "com.newmotion",
-  version := "0.0.1-SNAPSHOT",
   scalaVersion := tnm.ScalaVersion.prev,
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 )
