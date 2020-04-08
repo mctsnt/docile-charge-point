@@ -38,6 +38,20 @@ and `shortsend.Ops` ([OCPP
 operations](src/main/scala/chargepoint/docile/dsl/ocpp20transactions/Ops.scala)
 to deal with the complicated stateful transaction management.
 
+There are by now four ways to run the simulator:
+
+  * On the command line, with a behavior script given as a file
+
+  * On the command line, directly controlling the charge point behavior using an interactive prompt
+
+  * In a Docker container, which allows you to have a simulated charge point execute a behavior script somewhere in the cloud, testing your system continuously with as little as possible work on your part
+
+  * As a library dependency of another application, which allows you to combine it with other test tools, and write tests that interface with other network services besides just OCPP central systems.
+
+## Running on the command line
+
+The simplest way to run docile-charge-point is on the command line so we will discuss that first.
+
 You can run the simulator like this, from the root directory of the project:
 
 ```
@@ -133,7 +147,7 @@ if (auth.status == AuthorizationStatus.Accepted) {
   // the StartTransaction response from the Central System, from which we take
   // the transaction ID and assign it the name `transId`
   val transId = startTransaction(meterStart = 300, idTag = chargeTokenId).transactionId
-  
+
   // ... and then, we notify the Central System that this charge point has
   // started charging.
   statusNotification(status = ChargePointStatus.Occupied(Some(OccupancyKind.Charging)))
@@ -304,7 +318,7 @@ expectIncoming(
 )
 ```
 
-## Interactive use
+## Running on the command line with an interactive prompt
 
 You can also go into an interactive testing session on the command line.
 
@@ -387,7 +401,7 @@ res4: StopTransactionRes = StopTransactionRes(Some(IdTagInfo(Accepted, None, Som
 
 Note also that between those two requests, I used tab completion to look up the name of the `transactionId` field in the StopTransaction request.
 
-## Docker
+## Running in a Docker container
 
 There is now a Dockerfile included, so you can run it in Docker if you want. Also you can use the Docker image as a basis for your own images that encode certain charge point behaviors.
 
@@ -399,7 +413,34 @@ $ docker build -t docile-charge-point:latest .
 $ docker run --rm -it docile-charge-point:latest
 ```
 
+The Docker container will execute docile-charge-point, executing a script that
+waits for OCPP remote start and remote stop requests and reports charge
+transactions accordingly.
+
 See [the Dockerfile](Dockerfile) for available environment variables to control the image.
+
+## Running inside another app, embedded as a library
+
+For maximum flexibility, you can embed docile-charge-point as a library dependency in your own Scala code. In that case,
+ you can use the docile-charge-point DSL while also calling other libraries and code of your own.
+
+ To make docile-charge-point a dependency of your Scala project, add this to your library dependencies in your `build.sbt`:
+
+```scala
+"com.newmotion" %% "docile-charge-point" % "0.4"
+```
+
+and make sure that the NewMotion Nexus repository is in your sources by adding this to your `project/plugins.sbt`:
+
+```scala
+resolvers += "TNM" at "http://nexus.thenewmotion.com/content/groups/public"
+```
+
+Then you can create test cases as instances of `chargepoint.docile.dsl.OcppTest` in your code and create instances of `chargepoint.docile.test.Runner` to execute them.
+
+One example where this is done is the AWS Lambda and S3 integration in the [lambda](aws-lambda/) subproject in this repository. Run `sbt lambda/run` to compile and run that code.
+
+At the moment, unfortunately, the only documentation is this and the [source code](aws-lambda/src/main/scala/chargepoint/docile/Lambda.scala).
 
 ## TODOs
 
