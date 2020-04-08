@@ -10,23 +10,40 @@ lazy val commonSettings = Seq(
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 )
 
-lazy val root = (project in file(".")).
+lazy val commandLine = (project in file("cmd"))
+  .dependsOn(core)
+  .dependsOn(loader)
+  .settings(
+    commonSettings,
+    name := "docile-charge-point-command-line",
+    libraryDependencies ++= commandLineDeps,
+    mainClass := Some("chargepoint.docile.Main"),
+    assemblyJarName in assembly := "docile.jar",
+    connectInput in run := true
+  )
+
+lazy val core = (project in file("core")).
   settings(
     commonSettings,
     name := "docile-charge-point",
-    mainClass := Some("chargepoint.docile.Main"),
-    assemblyJarName in assembly := "docile.jar",
-    connectInput in run := true,
-    libraryDependencies ++= deps(scalaVersion.value)
+    libraryDependencies ++= coreDeps(scalaVersion.value)
   )
 
-lazy val lambda = (project in file("aws-lambda")).
-  dependsOn(root).
-  settings(
+lazy val loader = (project in file("loader"))
+  .dependsOn(core)
+  .settings(
+    commonSettings,
+    name := "docile-charge-point-loader"
+  )
+
+lazy val lambda = (project in file("aws-lambda"))
+  .dependsOn(core)
+  .dependsOn(loader)
+  .settings(
     commonSettings,
     name := "lambda-docile-charge-point",
     retrieveManaged := true,
-    libraryDependencies ++= deps(scalaVersion.value) ++ awsDeps,
+    libraryDependencies ++= awsDeps,
     mainClass := Some("chargepoint.docile.Lambda"),
     assemblyJarName in assembly := "docile-lambda.jar"
   )
@@ -35,16 +52,19 @@ assemblyJarName in assembly := "docile.jar"
 
 connectInput in run := true
 
-def deps(scalaVersion: String) = Seq(
-  "com.lihaoyi"                  % "ammonite"         % "1.6.5"    cross CrossVersion.full,
+def coreDeps(scalaVersion: String) = Seq(
   "com.thenewmotion.ocpp"       %% "ocpp-j-api"       % "9.1.0",
-  "org.rogach"                  %% "scallop"          % "3.1.3",
   "org.scala-lang"               % "scala-compiler"   % scalaVersion,
-  "com.typesafe.scala-logging"  %% "scala-logging"    % "3.9.0",
   "org.slf4j"                    % "slf4j-api"        % "1.7.25",
-  "ch.qos.logback"               % "logback-classic"  % "1.2.3",
+  "com.typesafe.scala-logging"  %% "scala-logging"    % "3.9.0",
 
   "org.specs2"                  %% "specs2-core"      % "4.3.4"    % "test"
+)
+
+lazy val commandLineDeps = Seq(
+  "com.lihaoyi"                  % "ammonite"         % "1.6.5"    cross CrossVersion.full,
+  "org.rogach"                  %% "scallop"          % "3.1.3",
+  "ch.qos.logback"               % "logback-classic"  % "1.2.3"
 )
 
 lazy val awsDeps = Seq(

@@ -2,7 +2,7 @@ package chargepoint.docile
 
 import java.net.URI
 
-import chargepoint.docile.test.{RunOnce, Runner, RunnerConfig}
+import chargepoint.docile.test.{ResultSummary, RunOnce, Runner, RunnerConfig}
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.events.S3Event
@@ -66,7 +66,7 @@ object Lambda extends App {
 
     Try(runner.run(runnerCfg)) match {
       case Success(testsPassed) =>
-        val succeeded = Main.summarizeResults(testsPassed, reporter.print)
+        val succeeded = ResultSummary.summarizeResults(testsPassed, reporter.print)
         writeReportToS3(script.name, reporter.report)
         sys.exit(if (succeeded) 0 else 1)
       case Failure(e) =>

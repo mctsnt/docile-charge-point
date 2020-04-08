@@ -1,13 +1,14 @@
 package chargepoint.docile
 package test
 
-import scala.language.higherKinds
-import scala.concurrent.ExecutionContext.global
+import chargepoint.docile.dsl._
 import com.thenewmotion.ocpp.VersionFamily
-import com.thenewmotion.ocpp.messages.{Request, Response, ReqRes}
 import com.thenewmotion.ocpp.messages.v1x.{CentralSystemReq, CentralSystemReqRes, CentralSystemRes, ChargePointReq, ChargePointReqRes, ChargePointRes}
-import com.thenewmotion.ocpp.messages.v20.{CsmsRequest, CsmsResponse, CsmsReqRes, CsRequest, CsResponse, CsReqRes}
-import dsl._
+import com.thenewmotion.ocpp.messages.v20._
+import com.thenewmotion.ocpp.messages.{ReqRes, Request, Response}
+
+import scala.concurrent.ExecutionContext.global
+import scala.language.higherKinds
 
 trait InteractiveOcppTest[VFam <: VersionFamily] {
 

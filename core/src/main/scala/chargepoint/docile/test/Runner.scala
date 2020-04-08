@@ -156,10 +156,6 @@ object Runner {
 
   private val logger = LoggerFactory.getLogger("runner")
 
-  def interactive(vfam: VersionFamily): Runner[vfam.type] = new Runner[vfam.type](
-    Seq(TestCase("Interactive test", () => InteractiveOcppTest(vfam)))
-  )
-
   def forFiles(vfam: VersionFamily, files: Seq[String]): Runner[vfam.type] =
     new Runner(files.map(loadFile(vfam, _)))
 

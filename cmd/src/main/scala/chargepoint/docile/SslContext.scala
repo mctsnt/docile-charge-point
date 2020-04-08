@@ -3,9 +3,7 @@ package chargepoint.docile
 import java.io.FileInputStream
 import java.security.KeyStore
 
-import javax.net.ssl.KeyManagerFactory
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.{KeyManagerFactory, SSLContext, TrustManagerFactory}
 
 object SslContext {
   def apply(
