@@ -5,7 +5,8 @@ enablePlugins(OssLibPlugin)
 
 lazy val commonSettings = Seq(
   organization := "com.newmotion",
-  scalaVersion := tnm.ScalaVersion.prev,
+  scalaVersion := "2.12.8",
+  crossScalaVersions := Seq(tnm.ScalaVersion.aged, "2.12.8"),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 )
 
@@ -35,7 +36,7 @@ assemblyJarName in assembly := "docile.jar"
 connectInput in run := true
 
 def deps(scalaVersion: String) = Seq(
-  "com.lihaoyi"                  % "ammonite"         % "1.1.2"    cross CrossVersion.full,
+  "com.lihaoyi"                  % "ammonite"         % "1.6.5"    cross CrossVersion.full,
   "com.thenewmotion.ocpp"       %% "ocpp-j-api"       % "9.1.0",
   "org.rogach"                  %% "scallop"          % "3.1.3",
   "org.scala-lang"               % "scala-compiler"   % scalaVersion,

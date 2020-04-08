@@ -427,7 +427,7 @@ For maximum flexibility, you can embed docile-charge-point as a library dependen
  To make docile-charge-point a dependency of your Scala project, add this to your library dependencies in your `build.sbt`:
 
 ```scala
-"com.newmotion" %% "docile-charge-point" % "0.4.0"
+"com.newmotion" %% "docile-charge-point" % "0.4.1"
 ```
 
 and make sure that the NewMotion Nexus repository is in your sources by adding this to your `project/plugins.sbt`:
@@ -441,6 +441,13 @@ Then you can create test cases as instances of `chargepoint.docile.dsl.OcppTest`
 One example where this is done is the AWS Lambda and S3 integration in the [lambda](aws-lambda/) subproject in this repository. Run `sbt lambda/run` to compile and run that code.
 
 At the moment, unfortunately, the only documentation is this and the [source code](aws-lambda/src/main/scala/chargepoint/docile/Lambda.scala).
+
+Also, at the moment the library is only published for Scala 2.11 and 2.12. The
+reason is that docile-charge-point depends on Ammonite and Ammonite is a very
+finicky thing when it comes to dependency versioning. We are aware and if we
+keep working on docile-charge-point we will split the library and the
+interactive executable, so that we can also build the library for Scala 2.13
+and later versions.
 
 ## TODOs
 
