@@ -3,13 +3,15 @@ package chargepoint.docile
 import java.net.URI
 
 import chargepoint.docile.test.{RunOnce, Runner, RunnerConfig}
-
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.events.S3Event
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model.GetObjectRequest
-import com.thenewmotion.ocpp.Version
+import com.thenewmotion.ocpp.{Version, VersionFamily}
+import VersionFamily.V1X
+import chargepoint.docile.dsl.AwaitTimeoutInMillis
+import javax.net.ssl.SSLContext
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
@@ -54,12 +56,13 @@ object Lambda extends App {
       uri = cpUri,
       ocppVersion = Version.withName(cpVersion).getOrElse(Version.V15),
       authKey = cpAuthKey,
-      repeat = RunOnce
+      repeat = RunOnce,
+      defaultAwaitTimeout = AwaitTimeoutInMillis(45 * 60 * 1000),
+      sslContext = SSLContext.getDefault
     )
 
     println(s"executing ${script.name} as $cpId on $cpUri")
-    val runner: Runner = Runner.forBytes(script.name, script.content)
-    val sb:Seq[Any] = Seq[Any]()
+    val runner: Runner[V1X.type] = Runner.forBytes(V1X, script.name, script.content)
 
     Try(runner.run(runnerCfg)) match {
       case Success(testsPassed) =>
@@ -77,5 +80,4 @@ object Lambda extends App {
     println("someone dropped some scala")
     getScriptFromS3(event).flatMap(executeScript)
   }
-
 }
