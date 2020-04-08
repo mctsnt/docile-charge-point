@@ -427,7 +427,7 @@ For maximum flexibility, you can embed docile-charge-point as a library dependen
  To make docile-charge-point a dependency of your Scala project, add this to your library dependencies in your `build.sbt`:
 
 ```scala
-"com.newmotion" %% "docile-charge-point" % "0.4"
+"com.newmotion" %% "docile-charge-point" % "0.4.0"
 ```
 
 and make sure that the NewMotion Nexus repository is in your sources by adding this to your `project/plugins.sbt`:
