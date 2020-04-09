@@ -29,13 +29,13 @@ of behavior scripts it can run already are a simple heartbeat script ([OCPP
 session ([OCPP 1.x](examples/ocpp1x/do-a-transaction.scala) / [OCPP
 2.0](examples/ocpp20/do-a-transaction.scala)). The full set of OCPP and testing
 specific functions can be found in
-[CoreOps](src/main/scala/chargepoint/docile/dsl/CoreOps.scala),
-[expectations.Ops](src/main/scala/chargepoint/docile/dsl/expectations/Ops.scala)
+[CoreOps](core/src/main/scala/chargepoint/docile/dsl/CoreOps.scala),
+[expectations.Ops](core/src/main/scala/chargepoint/docile/dsl/expectations/Ops.scala)
 and `shortsend.Ops` ([OCPP
-1.x](src/main/scala/chargepoint/docile/dsl/shortsend/OpsV1X.scala) / [OCPP
-2.0](src/main/scala/chargepoint/docile/dsl/shortsend/OpsV20.scala)). For OCPP
+1.x](core/src/main/scala/chargepoint/docile/dsl/shortsend/OpsV1X.scala) / [OCPP
+2.0](core/src/main/scala/chargepoint/docile/dsl/shortsend/OpsV20.scala)). For OCPP
 2.0, there is also a [special set of
-operations](src/main/scala/chargepoint/docile/dsl/ocpp20transactions/Ops.scala)
+operations](core/src/main/scala/chargepoint/docile/dsl/ocpp20transactions/Ops.scala)
 to deal with the complicated stateful transaction management.
 
 There are by now four ways to run the simulator:
