@@ -71,3 +71,7 @@ lazy val awsDeps = Seq(
   "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
   "com.amazonaws" % "aws-lambda-java-events" % "1.2.0"
 )
+
+enablePlugins(OssLibPlugin)
+
+commonSettings
