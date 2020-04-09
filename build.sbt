@@ -1,18 +1,15 @@
-
-scalacOptions ++= Seq("-Xlint:-nullary-unit")
-
-enablePlugins(OssLibPlugin)
-
 lazy val commonSettings = Seq(
   organization := "com.newmotion",
   scalaVersion := "2.12.8",
   crossScalaVersions := Seq(tnm.ScalaVersion.aged, "2.12.8"),
+  scalacOptions ++= Seq("-Xlint:-nullary-unit"),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 )
 
 lazy val commandLine = (project in file("cmd"))
   .dependsOn(core)
   .dependsOn(loader)
+  .enablePlugins(OssLibPlugin)
   .settings(
     commonSettings,
     name := "docile-charge-point-command-line",
@@ -22,43 +19,44 @@ lazy val commandLine = (project in file("cmd"))
     connectInput in run := true
   )
 
-lazy val core = (project in file("core")).
-  settings(
+lazy val core = (project in file("core"))
+  .enablePlugins(OssLibPlugin)
+  .settings(
     commonSettings,
     name := "docile-charge-point",
-    libraryDependencies ++= coreDeps(scalaVersion.value)
+    libraryDependencies ++= coreDeps
   )
 
 lazy val loader = (project in file("loader"))
   .dependsOn(core)
+  .enablePlugins(OssLibPlugin)
   .settings(
     commonSettings,
+    libraryDependencies ++= loaderDeps(scalaVersion.value),
     name := "docile-charge-point-loader"
   )
 
 lazy val lambda = (project in file("aws-lambda"))
   .dependsOn(core)
   .dependsOn(loader)
-  .settings(
+  .enablePlugins(OssLibPlugin) .settings(
     commonSettings,
-    name := "lambda-docile-charge-point",
+    name := "docile-charge-point-lambda",
     retrieveManaged := true,
     libraryDependencies ++= awsDeps,
     mainClass := Some("chargepoint.docile.Lambda"),
     assemblyJarName in assembly := "docile-lambda.jar"
   )
 
-assemblyJarName in assembly := "docile.jar"
-
-connectInput in run := true
-
-def coreDeps(scalaVersion: String) = Seq(
+lazy val coreDeps = Seq(
   "com.thenewmotion.ocpp"       %% "ocpp-j-api"       % "9.1.0",
-  "org.scala-lang"               % "scala-compiler"   % scalaVersion,
-  "org.slf4j"                    % "slf4j-api"        % "1.7.25",
   "com.typesafe.scala-logging"  %% "scala-logging"    % "3.9.0",
 
   "org.specs2"                  %% "specs2-core"      % "4.3.4"    % "test"
+)
+
+def loaderDeps(scalaVersion: String) = Seq(
+  "org.scala-lang"               % "scala-compiler"   % scalaVersion,
 )
 
 lazy val commandLineDeps = Seq(

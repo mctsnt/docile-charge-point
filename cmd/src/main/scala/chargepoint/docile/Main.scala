@@ -7,7 +7,7 @@ import chargepoint.docile.test._
 import ResultSummary.summarizeResults
 import ch.qos.logback.classic.{Level, Logger}
 import com.thenewmotion.ocpp.{Version, VersionFamily}
-import com.typesafe.scalalogging.{StrictLogging}
+import com.typesafe.scalalogging.StrictLogging
 import javax.net.ssl.SSLContext
 import org.rogach.scallop._
 import org.slf4j.LoggerFactory
@@ -179,7 +179,7 @@ object Main extends App with StrictLogging {
     if (conf.interactive())
       interactiveRunner(conf.version().family)
     else
-      Runner.forFiles(conf.version().family, conf.files())
+      Loader.runnerFor(conf.version().family, conf.files())
 
   Try(runner.run(runnerCfg)) match {
     case Success(testsPassed) =>

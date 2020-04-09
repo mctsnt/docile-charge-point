@@ -1,11 +1,8 @@
 package chargepoint.docile
 package test
 
-import java.io.File
 import java.net.URI
-import java.nio.charset.StandardCharsets
 
-import scala.tools.reflect.ToolBox
 import scala.util.{Failure, Success, Try}
 import scala.collection.mutable
 import scala.concurrent.{Await, Future, Promise, duration}
@@ -14,7 +11,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import chargepoint.docile.dsl._
 import com.thenewmotion.ocpp
 import com.thenewmotion.ocpp.VersionFamily
-import com.thenewmotion.ocpp.VersionFamily.{V1X, V20}
 import com.typesafe.scalalogging.Logger
 import javax.net.ssl.SSLContext
 import org.slf4j.LoggerFactory
@@ -151,93 +147,4 @@ class Runner[VFam <: VersionFamily](testCases: Seq[TestCase[VFam]]) {
   }
 }
 
-
-object Runner {
-
-  private val logger = LoggerFactory.getLogger("runner")
-
-  def forFiles(vfam: VersionFamily, files: Seq[String]): Runner[vfam.type] =
-    new Runner(files.map(loadFile(vfam, _)))
-
-  private def loadFile(vfam: VersionFamily, f: String): TestCase[vfam.type] = {
-    val file = new File(f)
-    val testNameRegex = "(?:.*/)?([^/]+?)(?:\\.[^.]*)?$".r
-    val testName = f match {
-      case testNameRegex(n) => n
-      case _ => f
-    }
-    val fileContents = scala.io.Source.fromFile(file).getLines.mkString("\n")
-
-    loadString(vfam, testName, fileContents)
-  }
-
-  def forBytes(vfam: VersionFamily, name:String, bytes:Array[Byte]): Runner[vfam.type] =
-    new Runner(Seq(loadString(vfam, name, new String(bytes, StandardCharsets.UTF_8))))
-
-
-  private def loadString(vfam: VersionFamily, name:String, txt: String): TestCase[vfam.type] = {
-    import reflect.runtime.currentMirror
-    val toolbox = currentMirror.mkToolBox()
-
-    val appendix = ";\n  }\n}"
-
-    logger.info(s"Parsing and compiling script '$name'")
-
-    val preamble = preambleForVersionFamily(vfam)
-
-    val fileAst = toolbox.parse(preamble + txt + appendix)
-
-    logger.info(s"Parsed '$name'")
-
-    val compiledCode = toolbox.compile(fileAst)
-
-    logger.info(s"Compiled '$name'")
-
-    TestCase(name, () => compiledCode().asInstanceOf[OcppTest[vfam.type]])
-  }
-
-  private def preambleForVersionFamily(vfam: VersionFamily): String = {
-    val (messagesPackage, instantiatedType, csmsMessagesWitness, csMessagesWitness) = vfam match {
-      case V1X => (
-        "v1x",
-        "chargepoint.docile.dsl.Ocpp1XTest with chargepoint.docile.dsl.Ocpp1XTest.V1XOps",
-        "com.thenewmotion.ocpp.VersionFamily.V1XCentralSystemMessages",
-        "com.thenewmotion.ocpp.VersionFamily.V1XChargePointMessages"
-      )
-      case V20 => (
-        "v20",
-        "chargepoint.docile.dsl.Ocpp20Test with chargepoint.docile.dsl.Ocpp20Test.V20Ops",
-        "com.thenewmotion.ocpp.VersionFamily.V20CsmsMessages",
-        "com.thenewmotion.ocpp.VersionFamily.V20CsMessages"
-      )
-    }
-
-    s"""
-       |import com.thenewmotion.ocpp.messages.$messagesPackage._
-       |
-       |import scala.language.postfixOps
-       |import scala.concurrent.duration._
-       |import scala.concurrent.ExecutionContext
-       |import scala.util.Random
-       |import java.time._
-       |import com.typesafe.scalalogging.Logger
-       |import org.slf4j.LoggerFactory
-       |
-       |import chargepoint.docile.dsl.AwaitTimeout
-       |import chargepoint.docile.dsl.Randomized._
-       |
-       |new $instantiatedType {
-       |
-       |  implicit val executionContext: ExecutionContext = ExecutionContext.global
-       |  implicit val csmsMessageTypes = $csmsMessagesWitness
-       |  implicit val csMessageTypes = $csMessagesWitness
-       |
-       |  private implicit val rand: Random = new Random()
-       |
-       |  def run(defaultAwaitTimeout: AwaitTimeout) {
-       |    implicit val awaitTimeout: AwaitTimeout = defaultAwaitTimeout;
-       |
-     """.stripMargin
-  }
-}
 

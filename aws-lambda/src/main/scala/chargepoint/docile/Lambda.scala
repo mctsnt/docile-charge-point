@@ -2,7 +2,7 @@ package chargepoint.docile
 
 import java.net.URI
 
-import chargepoint.docile.test.{ResultSummary, RunOnce, Runner, RunnerConfig}
+import chargepoint.docile.test.{Loader, ResultSummary, RunOnce, Runner, RunnerConfig}
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.events.S3Event
@@ -62,7 +62,7 @@ object Lambda extends App {
     )
 
     println(s"executing ${script.name} as $cpId on $cpUri")
-    val runner: Runner[V1X.type] = Runner.forBytes(V1X, script.name, script.content)
+    val runner: Runner[V1X.type] = Loader.runnerFor(V1X, script.name, script.content)
 
     Try(runner.run(runnerCfg)) match {
       case Success(testsPassed) =>
