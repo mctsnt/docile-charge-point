@@ -75,3 +75,5 @@ lazy val awsDeps = Seq(
 enablePlugins(OssLibPlugin)
 
 commonSettings
+
+name := "docile-charge-point-root"
