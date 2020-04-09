@@ -52,19 +52,25 @@ There are by now four ways to run the simulator:
 
 The simplest way to run docile-charge-point is on the command line so we will discuss that first.
 
-You can run the simulator like this, from the root directory of the project:
+To run the simulator, you first have to compile it with this command:
 
+```bash
+sbt assembly
 ```
-sbt 'run -c <charge point ID> -v <OCPP version> <Central System endpoint URL> <test scripts...>'
+
+When that completes successfully, you can run the simulator like this, from the root directory of the project:
+
+```bash
+java -jar cmd/target/scala-2.12/docile.jar -c <charge point ID> -v <OCPP version> <Central System endpoint URL> <test scripts...>
 ```
 
 so e.g.:
 
-```
-sbt 'run -c chargepoint0123 -v 1.6 ws://example.org/ocpp-j-endpoint examples/ocpp1x/heartbeat.scala'
+```bash
+java -jar cmd/target/scala-2.12/docile.jar -c chargepoint0123 -v 1.6 ws://example.org/ocpp-j-endpoint examples/ocpp1x/heartbeat.scala
 ```
 
-See `sbt 'run --help'` for more options.
+See `java -jar cmd/target/scala-2.12/docile.jar --help` for more options.
 
 If you're looking for a Central System to run docile-charge-point against, check [SteVe](https://github.com/RWTH-i5-IDSG/steve) or [OCPP 1.6 Backend](https://github.com/gertjana/ocpp16-backend).
 
@@ -198,7 +204,7 @@ transaction, I will see that one script failed and the other one passed. In the
 console, that looks like this:
 
 ```
-sbt 'run -c '03000001' ws://test-chargenetwork.thenewmotion.com/ocppws examples/heartbeat.scala examples/do-a-transaction.scala'
+java -jar cmd/target/scala-2.12/docile.jar -c '03000001' ws://example.com/ocpp examples/heartbeat.scala examples/do-a-transaction.scala
 Loading settings from plugins.sbt ...
 Loading project definition from /Users/reinier/Documents/Programs/docile-charge-point/project
 Loading settings from build.sbt ...
@@ -206,7 +212,7 @@ Set current project to docile-charge-point (in build file:/Users/reinier/Documen
 Credentials file /Users/reinier/.ivy2/.credentials does not exist
 Packaging /Users/reinier/Documents/Programs/docile-charge-point/target/scala-2.11/docile-charge-point_2.11-0.1-SNAPSHOT.jar ...
 Done packaging.
-Running (fork) chargepoint.docile.Main -c 03000001 ws://test-chargenetwork.thenewmotion.com/ocppws examples/heartbeat.scala examples/do-a-transaction.scala
+Running (fork) chargepoint.docile.Main -c 03000001 ws://example.com/ocpp examples/heartbeat.scala examples/do-a-transaction.scala
 Going to run heartbeat
 >> HeartbeatReq
 << HeartbeatRes(2018-04-02T20:38:13.342Z[UTC])
@@ -320,18 +326,10 @@ expectIncoming(
 
 ## Running on the command line with an interactive prompt
 
-You can also go into an interactive testing session on the command line.
-
-To get an interactive terminal, it's easiest to first compile using sbt:
+You can also go into an interactive testing session on the command line. To do that, pass the `-i` command line flag:
 
 ```
-sbt assembly
-```
-
-And then run `docile-charge-point` directly using the `java` command:
-
-```
-java -jar target/scala-2.11/docile.jar -i -v 1.6 -c chargepoint0123 ws://example.com/ocpp
+java -jar cmd/target/scala-2.12/docile.jar -i -v 1.6 -c chargepoint0123 ws://example.com/ocpp
 ```
 
 The `-i` option here tells `docile-charge-point` to go into interactive mode.
@@ -408,6 +406,8 @@ There is now a Dockerfile included, so you can run it in Docker if you want. Als
 To run it in Docker, do:
 
 ```
+$ sbt assembly
+
 $ docker build -t docile-charge-point:latest .
 
 $ docker run --rm -it docile-charge-point:latest
@@ -427,7 +427,7 @@ For maximum flexibility, you can embed docile-charge-point as a library dependen
  To make docile-charge-point a dependency of your Scala project, add this to your library dependencies in your `build.sbt`:
 
 ```scala
-"com.newmotion" %% "docile-charge-point" % "0.4.1"
+"com.newmotion" %% "docile-charge-point" % "0.5.0"
 ```
 
 and make sure that the NewMotion Nexus repository is in your sources by adding this to your `project/plugins.sbt`:
@@ -436,7 +436,30 @@ and make sure that the NewMotion Nexus repository is in your sources by adding t
 resolvers += "TNM" at "http://nexus.thenewmotion.com/content/groups/public"
 ```
 
-Then you can create test cases as instances of `chargepoint.docile.dsl.OcppTest` in your code and create instances of `chargepoint.docile.test.Runner` to execute them.
+Then, in your code:
+  1. Create tests as instances of `chargepoint.docile.dsl.OcppTest` in your code
+  1. Combine them with a testcase name to be a [`chargepoint.docile.test.TestCase`](core/src/main/scala/chargepoint/docile/test/TestCase.scala)
+  1. Instantiate a [`chargepoint.docile.test.Runner`](core/src/main/scala/chargepoint/docile/test/Runner.scala) wrapping the test cases
+  1. Call the `.run()` method on the `Runner`, passing a [`chargepoint.docile.test.RunnerConfig`](core/src/main/scala/chargepoint/docile/test/Runner.scala) to specify how you'd like the test to be executed
+
+### Loading test cases distributed separately as files
+
+To load text files as test cases, you need another library as a dependency:
+
+```scala
+"com.newmotion" %% "docile-charge-point-loader" % "0.5.0"
+```
+
+and of course also in this case the resolver in your `project/plugins.sbt`:
+
+```scala
+resolvers += "TNM" at "http://nexus.thenewmotion.com/content/groups/public"
+```
+
+Then you'll, besides all the classes for defining and running test cases
+mentioned above, also have a [`chargepoint.docile.test.Loader`](loader/src/main/scala/chargepoint/docile/test/Loader.scala)
+that has a few methods all called `runnerFor` that will give you a `Runner`
+instance based on a file, `String` or `Array[Byte]` for a test case.
 
 One example where this is done is the AWS Lambda and S3 integration in the [lambda](aws-lambda/) subproject in this repository. Run `sbt lambda/run` to compile and run that code.
 
