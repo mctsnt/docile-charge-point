@@ -33,7 +33,9 @@ if (auth.status == AuthorizationStatus.Accepted) {
   }
 
   waitForValidRemoteStop()
-
+  // handle UnlockConnectorReq if present
+  Try(expectIncoming(unlockConnectorReq.respondingWith(UnlockConnectorRes(UnlockStatus.NotSupported))))
+  
   statusNotification(status = ChargePointStatus.Occupied(Some(OccupancyKind.Finishing)))
   stopTransaction(transactionId = transId, idTag = Some(chargeTokenId))
   statusNotification(status = ChargePointStatus.Available())
