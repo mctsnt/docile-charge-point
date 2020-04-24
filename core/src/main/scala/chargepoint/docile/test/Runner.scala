@@ -140,7 +140,7 @@ class Runner[VFam <: VersionFamily](testCases: Seq[TestCase[VFam]]) {
       case Failure(e)                => throw e
     }
 
-    logger.debug(s"Test ${c.name} run; disconnecting...")
+    logger.debug(s"Test ${c.name} run. Disconnecting. Test result was $res.")
     logger.debug(s"Disconnected OCPP connection for ${runnerCfg.chargePointId}/${c.name}")
 
     c.name -> res
