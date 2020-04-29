@@ -41,7 +41,7 @@ class ReceivedMsgManager[
       promise.future
   }
 
-  def flush(): Unit = {
+  def flush(): Unit = synchronized {
     messages.dequeueAll(_ => true)
     ()
   }
