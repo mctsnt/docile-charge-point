@@ -49,7 +49,7 @@ lazy val lambda = (project in file("aws-lambda"))
   )
 
 lazy val coreDeps = Seq(
-  "com.thenewmotion.ocpp"       %% "ocpp-j-api"       % "9.1.0",
+  "com.thenewmotion.ocpp"       %% "ocpp-j-api"       % "9.2.3",
   "com.typesafe.scala-logging"  %% "scala-logging"    % "3.9.0",
 
   "org.specs2"                  %% "specs2-core"      % "4.3.4"    % "test"
