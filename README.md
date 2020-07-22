@@ -189,7 +189,18 @@ The important take-aways here are:
   * Typically, DSL operations will block until the user input or Central System
     response has come, and will return this result as from the function call
 
-### Expectations
+### Writing scripts with autocomplete in your favourite IDE
+
+I admit it's quite inconvenient that in the script files you have the full power of Scala, but you don't have IDE support to help you suggest methods to call or highlight mistakes. So I've added a project in which you can edit your docile-charge-point script with IDE support.
+
+How does that work? Well, docile-charge-point actually loads its script files by adding a bunch of imports and other boilerplate before and after the script file contents before the code is compiled. So you would have IDE support if you would be editing the file with the boilerplate in place. I don't want to make it the standard way of working to add this boilerplate in the scripts though, because that would make it harder to read the scripts for outsiders and it would lead to more version compatibility troubles between versions of docile-charge-point.
+
+To still allow you to have your autocomplete, there is a special template project in which you can edit a script with the boilerplate included and also execute it. In that project, docile is loaded as a library so that it is possible to run the interpreter on your compiled code without running the script file loader that adds the boilerplate.
+
+To use it, open the template project in the [autocomplete-template-project](autocomplete-template-project/) directory. The project already has an sbt file setting up the library dependencies
+on the docile-charge-point DSL core. IntelliJ IDEA will import this project just fine. You'll then find a file [TestScript.scala](autocomplete-template-project/src/main/scala/TestScript.scala) that contains all the boilerplate and a comment that says `// INSERT SCRIPT HERE`. If you start editing at the place where that comment is, you can type anything that you can also type in a script file without the boilerplate. IDEA will offer you all its suggestion magic. To run your code, just execute `TestScript` as a main class in IDEA. To distribute your code as a reusable docile-charge-point script, just copy the part you added out of the surrounding boilerplate and put it in a file of its own.
+
+### Scripts with expectations
 
 The semi-final line is interesting: `fail("Not authorized")`.
 
