@@ -1,7 +1,7 @@
 lazy val commonSettings = Seq(
   organization := "com.newmotion",
-  scalaVersion := "2.12.8",
-  crossScalaVersions := Seq(tnm.ScalaVersion.aged, "2.12.8"),
+  scalaVersion := "2.12.11",
+  crossScalaVersions := Seq("2.12.11"),
   scalacOptions ++= Seq("-Xlint:-nullary-unit"),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 )
@@ -16,6 +16,13 @@ lazy val commandLine = (project in file("cmd"))
     libraryDependencies ++= commandLineDeps,
     mainClass := Some("chargepoint.docile.Main"),
     assemblyJarName in assembly := "docile.jar",
+    assemblyMergeStrategy in assembly := {
+        case "reflect.properties" =>
+            MergeStrategy.concat
+	case x =>
+	    val oldStrategy = (assemblyMergeStrategy in assembly).value
+	    oldStrategy(x)
+    },
     connectInput in run := true
   )
 
@@ -60,7 +67,7 @@ def loaderDeps(scalaVersion: String) = Seq(
 )
 
 lazy val commandLineDeps = Seq(
-  "com.lihaoyi"                  % "ammonite"         % "1.6.5"    cross CrossVersion.full,
+  "com.lihaoyi"                  % "ammonite"         % "2.1.4"    cross CrossVersion.full,
   "org.rogach"                  %% "scallop"          % "3.1.3",
   "ch.qos.logback"               % "logback-classic"  % "1.2.3"
 )
